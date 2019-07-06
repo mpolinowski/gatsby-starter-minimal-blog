@@ -5,7 +5,7 @@ const Button = styled.button`
   border: none;
   display: inline-flex;
   align-items: center;
-  border-radius: ${props => (props.big ? '1.5rem' : '1rem')};
+  border-radius: ${props => (props.big ? '.2rem' : '1rem')};
   font-size: ${props => (props.big ? '1.2rem' : '1rem')};
   color: ${props => props.theme.colors.white};
   padding: ${props => (props.big ? '0.5rem 1.75rem' : '0.35rem 1.65rem')};
@@ -18,12 +18,6 @@ const Button = styled.button`
   }
   &:focus {
     outline: none;
-  }
-  svg {
-    width: 20px;
-    height: 20px;
-    margin-right: 0.75rem;
-    fill: ${props => props.theme.colors.white};
   }
 `
 

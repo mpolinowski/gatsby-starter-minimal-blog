@@ -18,7 +18,7 @@ const GlobalStyle = createGlobalStyle`
     margin: 0;
   }
   ::selection {
-    color: ${props => props.theme.colors.bg};
+    color: ${props => props.theme.colors.grey.ultraLight};
     background: ${props => props.theme.colors.primary};
   }
   html {
@@ -60,10 +60,10 @@ const GlobalStyle = createGlobalStyle`
   }
   body {
     background: ${props => props.theme.colors.bg};
-    color: ${props => props.theme.colors.grey.default};
+    color: ${props => props.theme.colors.grey.ultraLight};
   }
   a {
-    color: ${props => props.theme.colors.primary};
+    color: ${props => props.theme.colors.link};
     text-decoration: none;
     transition: all ${props => props.theme.transitions.normal};
   }
@@ -83,8 +83,11 @@ const GlobalStyle = createGlobalStyle`
     }
   }
   h1, h2, h3, h4, h5, h6 {
-    color: ${props => props.theme.colors.grey.dark};
+    color: ${props => props.theme.colors.grey.ultraLight};
     font-family: ${props => props.theme.fontFamily.serif};
+  }
+  p {
+    color: ${props => props.theme.colors.grey.ultraLight};
   }
   blockquote {
     font-style: italic;
@@ -101,7 +104,7 @@ const GlobalStyle = createGlobalStyle`
   }
   label {
     margin-bottom: .5rem;
-    color: ${props => props.theme.colors.grey.dark};
+    color: ${props => props.theme.colors.grey.ultraLight};
   }
   input, textarea, button {
     font-size: 1rem;
@@ -204,8 +207,8 @@ const Layout = ({ children, customSEO }) => {
         <GlobalStyle />
         {children}
         <Footer>
-          &copy; 2019 by LekoArts. All rights reserved. <br />
-          <a href="https://github.com/LekoArts/gatsby-starter-minimal-blog">GitHub Repository</a> <br />
+          &copy; 2019 by Mike Polinowski<br />
+          <a href="https://github.com/mpolinowski/">GitHub</a> <br />
           <span>Last build: {buildTime}</span>
         </Footer>
       </>

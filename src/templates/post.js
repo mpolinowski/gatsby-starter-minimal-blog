@@ -12,16 +12,16 @@ const Content = styled.article`
   grid-column: 2;
   box-shadow: 0 4px 120px rgba(0, 0, 0, 0.1);
   max-width: 1000px;
-  border-radius: 1rem;
+  border-radius: 0.2rem;
   padding: 2rem 4.5rem;
-  background-color: ${props => props.theme.colors.bg};
+  background-color: ${props => props.theme.colors.article};
   z-index: 9000;
   margin-top: -3rem;
   @media (max-width: ${props => props.theme.breakpoints.tablet}) {
-    padding: 3rem 3rem;
+    padding: 3rem 2rem;
   }
   @media (max-width: ${props => props.theme.breakpoints.phone}) {
-    padding: 2rem 1.5rem;
+    padding: 2rem 1rem;
   }
   p {
     font-size: 1.1rem;
