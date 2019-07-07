@@ -1,11 +1,14 @@
 # Gatsby Starter: Minimal Blog
 
+Dark themed version of the [gatsby-starter-minimal-blog](https://github.com/LekoArts/gatsby-starter-minimal-blog) by [LekoArts](https://github.com/LekoArts/):
+
+![Screenshot Preview](./screenshot.png)
+
 ## Features
 
 - Articles in MDX ([gatsby-mdx](https://github.com/ChristopherBiscardi/gatsby-mdx))
 - Code highlighting (with [prism-react-renderer](https://github.com/FormidableLabs/prism-react-renderer)) and live preview (with [react-live](https://github.com/FormidableLabs/react-live))
 - Styled Components 💅
-- Netlify Contact Form
 - Categories
 - Offline Support
 - WebApp Manifest Support

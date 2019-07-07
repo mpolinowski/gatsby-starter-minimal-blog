@@ -1,0 +1,333 @@
+---
+date: "2019-03-05"
+title: "Setting up an OKD Cluster"
+categories:
+  - LINUX
+  - Docker
+  - OpenShift
+---
+
+![Mustang, Nepal](./photo-875sdfgd_67456dfdj_o.jpg)
+
+
+<!-- TOC -->
+
+- [System and environment requirements](#system-and-environment-requirements)
+  - [SELinux requirements](#selinux-requirements)
+  - [Optional: Configuring Core Usage](#optional-configuring-core-usage)
+  - [DNS Requirements](#dns-requirements)
+  - [Packages Requirements](#packages-requirements)
+- [OpenShift Installation](#openshift-installation)
+  - [Enable NetworkManager and Docker Services](#enable-networkmanager-and-docker-services)
+  - [Install Ansible and Clone Openshift-Ansible on the Master Node](#install-ansible-and-clone-openshift-ansible-on-the-master-node)
+  - [Generate SSH Keys on the Master Node](#generate-ssh-keys-on-the-master-node)
+- [Creating the OpenShift Inventory File](#creating-the-openshift-inventory-file)
+
+<!-- /TOC -->
+
+
+OKD brings together Docker and Kubernetes, and provides an API to manage these services. OKD allows you to create and manage containers.
+
+
+Containers are standalone processes that run within their own environment, independent of the operating system and the underlying infrastructure. OKD helps you to develop, deploy, and manage container-based applications. It provides you with a self-service platform to create, modify, and deploy applications on demand, thus enabling faster development and release life cycles.
+
+
+
+## System and environment requirements
+
+
+* __Master hosts__ In a highly available OKD cluster with external etcd, a master host needs to meet the minimum requirements and have 1 CPU core and 1.5 GB of memory for each 1000 pods. Therefore, the recommended size of a master host in an OKD cluster of 2000 pods is the minimum requirements of 2 CPU cores and 16 GB of RAM, plus 2 CPU cores and 3 GB of RAM, totaling 4 CPU cores and 19 GB of RAM.
+
+
+* __Node hosts__: The size of a node host depends on the expected size of its workload. As an OKD cluster administrator, you need to calculate the expected workload and add about 10 percent for overhead. For production environments, allocate enough resources so that a node host failure does not affect your maximum capacity.
+
+
+| Directory  | Notes  |  Sizing | Expected Growth |
+|---|---|---|---|
+| /var/lib/openshift | Used for etcd storage only when in single master mode and etcd is embedded in the atomic-openshift-master process. | Less than 10GB. | Will grow slowly with the environment. Only storing metadata. |
+| /var/lib/etcd | Used for etcd storage when in Multi-Master mode or when etcd is made standalone by an administrator. | Less than 20 GB. | Will grow slowly with the environment. Only storing metadata. |
+| /var/lib/docker  | When the run time is docker, this is the mount point. Storage used for active container runtimes (including pods) and storage of local images (not used for registry storage). Mount point should be managed by docker-storage rather than manually.  | 50 GB for a Node with 16 GB memory. Additional 20-25 GB for every additional 8 GB of memory.  |  Growth is limited by the capacity for running containers. |
+| /var/lib/containers  | When the run time is CRI-O, this is the mount point. Storage used for active container runtimes (including pods) and storage of local images (not used for registry storage).   |  50 GB for a Node with 16 GB memory. Additional 20-25 GB for every additional 8 GB of memory. |  Growth limited by capacity for running containers |
+| /var/lib/origin/openshift.local.volumes | Ephemeral volume storage for pods. This includes anything external that is mounted into a container at runtime. Includes environment variables, kube secrets, and data volumes not backed by persistent storage PVs.  | Varies  | Minimal if pods requiring storage are using persistent volumes. If using ephemeral storage, this can grow quickly.  |
+|  /var/log |  Log files for all components. | 10 to 30 GB.  | Log files can grow quickly; size can be managed by growing disks or managed using log rotate.  |
+
+			
+
+### SELinux requirements
+
+Security-Enhanced Linux (SELinux) must be enabled on all of the servers before installing OKD or the installer will fail. Also, configure `SELINUX=enforcing` and `SELINUXTYPE=targeted` in the `/etc/selinux/config` file:
+
+
+```conf
+# This file controls the state of SELinux on the system.
+# SELINUX= can take one of these three values:
+#     enforcing - SELinux security policy is enforced.
+#     permissive - SELinux prints warnings instead of enforcing.
+#     disabled - No SELinux policy is loaded.
+SELINUX=enforcing
+# SELINUXTYPE= can take one of three two values:
+#     targeted - Targeted processes are protected,
+#     minimum - Modification of targeted policy. Only selected processes are protected.
+#     mls - Multi Level Security protection.
+SELINUXTYPE=targeted
+```
+
+
+### Optional: Configuring Core Usage
+
+By default, OKD masters and nodes use all available cores in the system they run on. You can choose the number of cores you want OKD to use by setting the GOMAXPROCS environment variable. For example, run the following before starting the server to make OKD only run on one core:
+
+
+```bash
+# export GOMAXPROCS=1
+```
+
+
+### DNS Requirements
+
+Adding entries into the `nano /etc/hosts` file on each host is not enough (_? According to the official documentation ?_). In the example below all three host - one master and two minions - are resolved by their domain name `in-centos-master`, `in-centos-minion1`, `in-centos-minion2`:
+
+
+```
+# The following lines are desirable for IPv4 capable hosts
+127.0.0.1 localhost.localdomain localhost
+127.0.0.1 localhost4.localdomain4 localhost4
+
+# The following lines are desirable for IPv6 capable hosts
+::1 localhost.localdomain localhost
+::1 localhost6.localdomain6 localhost6
+
+# Kubernetes Cluster
+193.101.18.2 in-centos-master master
+116.211.18.8 in-centos-minion1 minion1
+78.33.18.14 in-centos-minion2 minion2
+```
+
+You can test that the nodes are able to reach each other by sending a ping: `ping master`, `ping minion1`, `ping minion2`. You can set those hostnames on each node with the following command:
+
+
+```bash
+hostnamectl set-hostname in-centos-master  # for the master node, etc.
+```
+
+
+
+<!-- This file is not copied into containers running on the platform. Key components of OKD run themselves inside of containers and use the following process for name resolution:
+
+* By default, containers receive their DNS configuration file `/etc/resolv.conf` from their host.
+
+* OKD then sets the pod’s first name server to the IP address of the node.
+
+
+As of OKD 1.2, __dnsmasq__ is automatically configured on all masters and nodes. The pods use the nodes as their DNS, and the nodes forward the requests. By default, __dnsmasq__ is configured on the nodes to listen on port 53, therefore the nodes cannot run any other type of DNS application. -->
+
+
+
+
+### Packages Requirements
+
+
+On a fresh Centos-minimal install you will have to install the following packages on all nodes:
+
+
+```bash
+yum install -y wget git zile nano net-tools docker bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct openssl-devel httpd-tools NetworkManager python-cryptography python2-pip python-devel python-passlib java-1.8.0-openjdk-headless "@Development Tools"
+```
+
+
+
+
+## OpenShift Installation
+
+
+Add the Epel Release (and disable it by default) and the Centos Openshift Mirror:
+
+
+```bash
+rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+
+sed -i -e "s/^enabled=1/enabled=0/" /etc/yum.repos.d/epel.repo
+
+nano /etc/yum.repos.d/Openshift.repo
+```
+
+
+Add the following configuration:
+
+
+```yaml
+[openshift]
+name=CentOS-OpenShift
+baseurl=http://mirror.centos.org/centos/7/paas/x86_64/openshift-origin39
+gpgcheck=0
+enabled=1
+```
+
+
+And check that both have been added with:
+
+
+```bash
+yum repolist
+```
+
+
+### Enable NetworkManager and Docker Services
+
+
+```bash
+systemctl start NetworkManager
+systemctl enable NetworkManager
+systemctl status NetworkManager
+
+systemctl start docker
+systemctl enable docker
+systemctl status docker
+```
+
+
+### Install Ansible and Clone Openshift-Ansible on the Master Node
+
+Now we can install [Ansible](https://docs.ansible.com/) from the Epel repository - note you need to enable it first if you followed along and disabled it earlier:
+
+
+```bash
+yum -y --enablerepo=epel install ansible pyOpenSSL
+git clone https://github.com/openshift/openshift-ansible.git
+cd openshift-ansible && git fetch && git checkout release-3.11
+```
+
+
+Now we have the [OpenShift-Ansible](https://github.com/openshift/openshift-ansible) package cloned and the checked out the latest stable version 3.11.
+
+
+### Generate SSH Keys on the Master Node
+
+We can now generate an SSH key on our master and copy it to the minion nodes:
+
+
+```bash
+ssh-keygen -f ~/.ssh/id_rsa -N ''
+```
+
+
+This will generate a key in `~/.ssh/id_rsa.pub` that you have to copy to each node to be able to ssh into those nodes without a password:
+
+
+```bash
+ssh-copy-id -i ~/.ssh/id_rsa.pub master -p 22
+ssh-copy-id -i ~/.ssh/id_rsa.pub minion1 -p 22
+ssh-copy-id -i ~/.ssh/id_rsa.pub minion2 -p 22
+```
+
+Now verify that you are able to access each node from the master without having to use your password to login:
+
+
+```bash
+ssh root@master -p 22
+ssh root@minion1 -p 22
+ssh root@minion2 -p 22
+```
+
+
+
+## Creating the OpenShift Inventory File
+
+[Playbooks](https://docs.ansible.com/ansible/latest/user_guide/playbooks_intro.html) are a completely different way to use ansible than in ad-hoc task execution mode, and are particularly powerful.
+
+Simply put, playbooks are the basis for a really simple configuration management and multi-machine deployment system, unlike any that already exist, and one that is very well suited to deploying complex applications. Playbooks can declare configurations, but they can also orchestrate steps of any manual ordered process, even as different steps must bounce back and forth between sets of machines in particular orders. They can launch tasks synchronously or asynchronously.
+
+Ansible works against multiple systems in your infrastructure at the same time. It does this by selecting portions of systems listed in [Ansible’s inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html). You can check out `cd ~/openshift-ansible/inventory` for some example files.
+
+
+Based on those files we can create our first own `nano inventory.ini`:
+
+
+```ini
+# OpenShift-Ansible host inventory
+
+# Create an OSEv3 group that contains the masters and nodes groups
+[OSEv3:children]
+masters
+nodes
+etcd
+
+
+# Set variables common for all OSEv3 hosts
+[OSEv3:vars]
+ansible_ssh_user=root
+enable_excluders=False
+enable_docker_excluder=False
+openshift_enable_service_catalog=False
+ansible_service_broker_install=False
+
+# Debug level for all OpenShift components (Defaults to 2)
+debug_level=2
+
+containerized=True
+os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
+openshift_disable_check=disk_availability,docker_storage,memory_availability,docker_image_availability
+
+openshift_node_kubelet_args={'pods-per-core': ['10']}
+
+deployment_type=origin
+openshift_deployment_type=origin
+
+openshift_release=v3.11.0
+openshift_pkg_version=v3.11.0
+openshift_image_tag=v3.11.0
+openshift_service_catalog_image_version=v3.11.0
+openshift_service_broker_image_version=v3.11.0
+osm_use_cockpit=true
+
+# Router on dedicated Infra Node
+openshift_hosted_router_selector='region=infra'
+openshift_master_default_subdomain=apps.test.instar.wiki
+openshift_public_hostname=master.test.instar.wiki
+
+# Image Registry on dedicated Infra Node
+openshift_hosted_registry_selector='region=infra'
+
+# htpasswd authentication with OSAdmin / dmlAjICyfrYXCsEH3NOoeeZMBkbo9G0JJy70z4etiO1dlCoo
+openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
+openshift_master_htpasswd_users={'OSAdmin': '$apr1$de7aZ7AQ$b0/L6hgDDskpuKekx/kfe.'}
+
+# Check http://www.htaccesstools.com/htpasswd-generator/
+
+[masters]
+in-centos-master openshift_ip=195.201.148.210 openshift_port=45454
+
+
+[etcd]
+in-centos-master openshift_ip=195.201.148.210 openshift_port=45454
+
+
+[nodes]
+in-centos-master openshift_ip=195.201.148.210 openshift_port=56721 openshift_schedulable=true
+in-centos-minion1 openshift_ip=116.203.51.18 openshift_schedulable=true openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+in-centos-minion2 openshift_ip=78.46.145.148 openshift_port=35745 openshift_schedulable=true openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
+```
+
+
+
+We can now use the Ansible Playbook command to check the prerequisites to deploy the OpenShift Cluster:
+
+
+```bash
+ansible-playbook -i inventory/inventory.ini playbooks/prerequisites.yml
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

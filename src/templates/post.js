@@ -42,6 +42,16 @@ const Content = styled.article`
   }
 `
 
+const Headline = styled.p`
+    font-size: 1.3rem;
+    line-height: 1.58;
+    font-weight: bold;
+    font-family: 'Bitter',-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto','Helvetica','Arial',serif;
+    @media (max-width: ${props => props.theme.breakpoints.phone}) {
+      font-size: 1rem;
+      }
+`
+
 const Title = styled.h1`
   margin-bottom: 1rem;
 `
@@ -58,12 +68,16 @@ const Post = ({ pageContext: { slug, prev, next }, data: { mdx: postNode } }) =>
       <Wrapper>
         <SEO postPath={slug} postNode={postNode} article />
         <Header>
-          <Link to="/">{config.siteTitle}</Link>
+          <Link to="/">
+            <Headline>
+              {config.siteTitle}
+            </Headline>
+          </Link>
         </Header>
         <Content>
           <Title>{post.title}</Title>
           <Subline>
-            {post.date} &mdash; {postNode.timeToRead} Min Read &mdash; In{' '}
+            {post.date} &mdash; {postNode.timeToRead} Min Read &mdash; Categories{'   '}
             {post.categories.map((cat, i) => (
               <React.Fragment key={cat}>
                 {!!i && ', '}

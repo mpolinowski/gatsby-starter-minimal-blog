@@ -36,14 +36,26 @@ module.exports = {
             },
           },
           {
-            resolve: 'gatsby-remark-images',
-            options: {
-              maxWidth: 830,
-              quality: 90,
-              withWebp: true,
-              linkImagesToOriginal: false,
-            },
+            resolve: `gatsby-remark-images-without-bg`,
+              options: {
+                maxWidth: 1024,
+                quality: 90,
+                withWebp: true,
+                linkImagesToOriginal: false,
+               },
           },
+          // {
+          //   resolve: 'gatsby-remark-images',
+          //   options: {
+          //     maxWidth: 800,
+          //     backgroundColor: "transparent",
+          //     wrapperStyle: 'display: none',
+          //     quality: 90,
+          //     withWebp: true,
+          //     linkImagesToOriginal: false,
+          //     tracedSVG: true,
+          //   },
+          // },
           // TODO: Replace with "mdx-component-autolink-headers"
           {
             resolve: 'gatsby-remark-autolink-headers',

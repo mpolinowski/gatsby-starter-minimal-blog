@@ -55,7 +55,7 @@ const Article = ({ title, date, excerpt, slug, timeToRead, categories }) => {
         <Link to={slug}>{title}</Link>
       </Title>
       <Subline>
-        {date} &mdash; {timeToRead} Min Read &mdash; In{' '}
+        {date} &mdash; {timeToRead} Min Read &mdash; Category{'    '}
         {categories.map((cat, i) => (
           <React.Fragment key={cat}>
             {!!i && ', '}
