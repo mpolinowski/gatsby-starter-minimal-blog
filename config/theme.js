@@ -8,7 +8,7 @@ const colors = {
   grey: {
     dark: 'rgba(0, 0, 0, 0.9)',
     default: 'rgba(0, 0, 0, 0.7)',
-    light: 'rgba(0, 0, 0, 0.15)',
+    light: 'rgba(0, 0, 0, 0.2)',
     ultraLight: '#ededed',
   },
   link: '#FFC107',

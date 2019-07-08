@@ -93,7 +93,11 @@ const GlobalStyle = createGlobalStyle`
     font-style: italic;
     position: relative;
   }
-
+  code {
+    font-style: italic;
+    color: ${props => props.theme.colors.primaryLight};
+    background: ${props => props.theme.colors.grey.light};
+  }
   blockquote:before {
     content: "";
     position: absolute;
