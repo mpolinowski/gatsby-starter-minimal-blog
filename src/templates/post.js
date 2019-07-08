@@ -42,16 +42,6 @@ const Content = styled.article`
   }
 `
 
-const Headline = styled.p`
-    font-size: 1.3rem;
-    line-height: 1.58;
-    font-weight: bold;
-    font-family: 'Bitter',-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto','Helvetica','Arial',serif;
-    @media (max-width: ${props => props.theme.breakpoints.phone}) {
-      font-size: 1rem;
-      }
-`
-
 const Title = styled.h1`
   margin-bottom: 1rem;
 `
@@ -69,9 +59,7 @@ const Post = ({ pageContext: { slug, prev, next }, data: { mdx: postNode } }) =>
         <SEO postPath={slug} postNode={postNode} article />
         <Header>
           <Link to="/">
-            <Headline>
               {config.siteTitle}
-            </Headline>
           </Link>
         </Header>
         <Content>
