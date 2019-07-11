@@ -42,7 +42,6 @@ module.exports = {
                 quality: 90,
                 withWebp: true,
                 linkImagesToOriginal: false,
-                tracedSVG: true,
                },
           },
           // {
