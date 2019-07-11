@@ -6,6 +6,8 @@ categories:
   - React
 ---
 
+import GifContainer from "../../src/components/ImageContainer";
+
 ![Angkor, Cambodia](./photo-11627973773_7295195845_o.png)
 
 
@@ -264,7 +266,8 @@ hydrate (
 
 This process will search for the Element ID 'app' inside our server-side rendered HTML and replace (rehydrate) the Element with corresponding, fully functional React Component. Since we are passing in different Data (World / You), we will be able to see, when the rehydration process succeeded - which on localhost is of course very fast:
 
-![React Rehydration](./ssrrr_01.gif)
+
+<GifContainer gifUrl="/assets/gif/ssrrr_01.gif" alt="React Rehydration" />
 
 
 But taking a look at your Browser Console tells you, that React is not happy about the mismatch - it expects the rendered content to be identical between the server and the client!
@@ -317,7 +320,7 @@ hydrate (
 ```
 
 
-![React Rehydration](./ssrrr_03.gif)
+<GifContainer gifUrl="/assets/gif/ssrrr_03.gif" alt="React Rehydration" />
 
 
 Now the server rendered version will have the hardcoded data, and the client side can pick it up from __\_\_INITIAL\_DATA\_\___
