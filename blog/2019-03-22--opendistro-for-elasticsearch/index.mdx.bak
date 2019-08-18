@@ -1,0 +1,216 @@
+---
+date: "2019-03-22"
+title: "Open Distro for Elasticsearch"
+categories:
+  - LINUX
+  - Docker
+  - OpenShift
+---
+
+![Harbin, China](./photo-84356dfgd_67gfh6dfdj_o.jpg)
+
+
+
+## Installation through Docker
+
+You can pull the Open Distro for Elasticsearch Docker image just like any other image:
+
+
+```bash
+docker pull amazon/opendistro-for-elasticsearch:latest
+docker pull amazon/opendistro-for-elasticsearch-kibana:latest
+```
+
+
+To run the image to test that everything is working:
+
+
+```bash
+docker run -p 9200:9200 -p 9600:9600 -e "discovery.type=single-node" amazon/opendistro-for-elasticsearch
+```
+
+
+Then send requests to the server to verify that Elasticsearch is up and running:
+
+
+```bash
+curl -XGET https://localhost:9200 -u admin:admin --insecure
+```
+
+
+![OKD Origin Kubernetes Distribution](./opendistro_for_elasticsearch_01.png)
+
+
+
+When everything is looking good run `docker ps` to find your container ID. Then you can stop the container using `docker stop <container-id>`.
+
+
+## Setup your Elasticsearch Cluster
+
+* `opendistro_security.ssl.http.enabled=false` – included to disable HTTPS. This was done so that tools that don’t support SSL requests with the --insecure flag can still be used.
+* `ELASTICSEARCH_URL: http://odfe-node1:9200` – similarly we’ve changed the https to http in the url definition for kibana.
+
+
+```yaml
+version: '3'
+services:
+  odfe-node1:
+    image: amazon/opendistro-for-elasticsearch
+    container_name: odfe-node1
+    environment:
+      - cluster.name=odfe-cluster
+      - node.name=odfe-node1
+      - discovery.seed_hosts=odfe-node1,odfe-node2
+      - cluster.initial_master_nodes=odfe-node1,odfe-node2
+      - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+      - opendistro_security.ssl.http.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536 # maximum number of open files for the Elasticsearch user, set to at least 65536 on modern systems
+        hard: 65536
+    volumes:
+      - odfe-data1:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9600:9600 # required for Performance Analyzer
+    networks:
+      - odfe-net
+  odfe-node2:
+    image: amazon/opendistro-for-elasticsearch
+    container_name: odfe-node2
+    environment:
+      - cluster.name=odfe-cluster
+      - node.name=odfe-node2
+      - discovery.seed_hosts=odfe-node1,odfe-node2
+      - cluster.initial_master_nodes=odfe-node1,odfe-node2
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - opendistro_security.ssl.http.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - odfe-data2:/usr/share/elasticsearch/data
+    networks:
+      - odfe-net
+  kibana:
+    image: amazon/opendistro-for-elasticsearch-kibana
+    container_name: odfe-kibana
+    ports:
+      - 5601:5601
+    expose:
+      - "5601"
+    environment:
+      ELASTICSEARCH_URL: http://odfe-node1:9200
+      ELASTICSEARCH_HOSTS: http://odfe-node1:9200
+    networks:
+      - odfe-net
+
+volumes:
+  odfe-data1:
+  odfe-data2:
+
+networks:
+  odfe-net:
+```
+
+Deploy the docker images using `docker-compose up -d` from within the repo folder:
+
+
+![OKD Origin Kubernetes Distribution](./opendistro_for_elasticsearch_02.png)
+
+
+
+> __odfe-node1 exited with code 78__: If you see this error message your max virtual memory is too low, increase to at least [262144]. Change the __vm.max_map_count__ value to 262144 with this command in my local machine: `sudo sysctl -w vm.max_map_count=262144`. This value will be reset when you reboot your Linux host. To make it permanent run `echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf` to add the value to your system config.
+
+The vm.max_map_count will be reseted to default value after you reboot your machine.
+
+
+To stop the cluster, run:
+
+
+```bash
+docker-compose down
+```
+
+
+To stop the cluster and delete all data volumes, run:
+
+
+```bash
+docker-compose down -v
+```
+
+
+
+<!-- ```yaml
+version: '3'
+
+services:
+
+  odfe-node1:
+    image: amazon/opendistro-for-elasticsearch:1.1.0
+    container_name: odfe-node1
+    environment:
+      - cluster.name=odfe-cluster
+      - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+      - opendistro_security.ssl.http.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - odfe-data1:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9600:9600 # required for Performance Analyzer
+    networks:
+      - odfe-net
+
+  odfe-node2:
+    image: amazon/opendistro-for-elasticsearch:1.1.0
+    container_name: odfe-node2
+    environment:
+      - cluster.name=odfe-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.zen.ping.unicast.hosts=odfe-node1
+      - opendistro_security.ssl.http.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - odfe-data2:/usr/share/elasticsearch/data
+    networks:
+      - odfe-net
+
+  kibana:
+    image: amazon/opendistro-for-elasticsearch-kibana:1.1.0
+    container_name: odfe-kibana
+    ports:
+      - 5601:5601
+    expose:
+      - "5601"
+    environment:
+      ELASTICSEARCH_URL: http://odfe-node1:9200
+      ELASTICSEARCH_HOSTS: https://odfe-node1:9200
+    networks:
+      - odfe-net
+
+volumes:
+  odfe-data1:
+  odfe-data2:
+
+networks:
+  odfe-net:
+``` -->

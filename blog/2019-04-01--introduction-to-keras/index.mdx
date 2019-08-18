@@ -1,0 +1,57 @@
+---
+date: "2019-04-01"
+title: "Introduction to Keras"
+categories:
+  - Machine Learning
+  - Python
+---
+
+![Shanghai, China](./photo-456tdsfggd_67gfh6dgdf4_d.jpg)
+
+[Keras](https://keras.io) is a high-level neural networks API, written in Python and capable of running on top of TensorFlow, CNTK, or Theano. It was developed with a focus on enabling fast experimentation. 
+
+
+## Installation of Keras
+
+You can install TensorFlow directly through `pip3 install keras` (make sure you have [Python v3](https://www.python.org/downloads/) installed).
+
+I have [Anaconda](https://docs.anaconda.com/anaconda/install/windows/) set up on my computer and am going to use it for this instead. If you already have Anaconda installed, make sure that it is up to date (make sure that you start the [Anaconda Prompt](https://docs.anaconda.com/anaconda/user-guide/getting-started/#write-a-python-program-using-anaconda-prompt-or-terminal) with Admin privileges):
+
+
+```bash
+conda update conda
+conda update anaconda
+```
+
+
+Anaconda allows us to create a virtual environment in which we can run our TensorFlow and Keras program. To create the environment with the name `py3-TF2` run the following command in the Anaconda Prompt - hit `y` when prompted:
+
+
+```bash
+conda create --name py3-TF2 python=3
+conda activate py3-TF2
+```
+
+
+Before installing Keras, please install one of its backend engines: [TensorFlow](https://mpolinowski.github.io/introduction-to-tensorflow-2-beta), Theano, or CNTK. We recommend the TensorFlow backend. We can now continue installing Keras inside this virtual environment:
+
+
+```bash
+pip install keras
+```
+
+
+To be able to use the virtual environment in [Jupyter Notebook](https://docs.anaconda.com/anaconda/user-guide/getting-started/#run-python-in-a-jupyter-notebook) we need to install `ipykernel` and `nb_conda_kernels` inside it:
+
+
+```bash
+pip install ipykernel
+conda install nb_conda_kernels
+```
+
+
+
+
+
+
+![Image Classification with Keras](./keras_08.png)

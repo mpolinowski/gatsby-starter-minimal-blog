@@ -1,0 +1,45 @@
+---
+date: "2019-03-15"
+title: "OKD Baremetal Single Host"
+categories:
+  - LINUX
+  - Docker
+  - OpenShift
+---
+
+![Harbin, China](./photo-84356dfgd_67gfh6dfdj_o.jpg)
+
+
+
+## Preparations
+
+As this is a local test setup running on a small mini computer - comparable to an Intel NUC - we first have to make sure that it is reachable over the internet. For this we first have to [forward the ports](https://wiki.instar.com/Internet_Access/Port_Forwarding/) __80, 443 and 8443__ inside our router:
+
+
+![OKD Origin Kubernetes Distribution](./okd_baremetal_01.png)
+
+
+If you already have a domain pointing to your [WAN IP Address](https://www.wieistmeineip.de) you can use this during the now following setup process when asked for a domain name. In my case I did not have one set up so I used the recommended [nip.io service](https://nip.io) - prefix the _nip.io_ with your [WAN IP](https://www.wieistmeineip.de) like __189.173.123.12.nip.io__ and this URL will automagically point to your WAN IP and you can later access the OKD interface via _https://console.189.173.123.12.nip.io:8443/_
+
+
+## Installation Script
+
+Now start with the [install script by gshipley](https://github.com/mpolinowski/installcentos) to install Origin Kubernetes on an CentOS 7 server:
+
+
+1. Clone this repo
+
+```bash
+git clone https://github.com/gshipley/installcentos.git
+```
+
+
+2. Execute the installation script
+
+```
+cd installcentos
+./install-openshift.sh
+```
+
+
+![OKD Origin Kubernetes Distribution](./okd_baremetal_02.png)

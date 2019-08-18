@@ -1,0 +1,136 @@
+---
+date: "2019-03-05"
+title: "Talkyard installation on a Centos server"
+categories:
+  - LINUX
+  - Docker
+  - OpenShift
+---
+
+![Mustang, Nepal](./photo-875sdfgd_67456dfdj_o.jpg)
+
+
+https://github.com/debiki/talkyard
+https://www.gatsbyjs.org/packages/@debiki/gatsby-plugin-talkyard/?=disco
+
+
+1. Make sure that your local is set to `LANG=en_US.UTF-8`:
+
+
+```bash
+localectl status
+    System Locale: LANG=en_US.UTF-8
+        VC Keymap: us
+      X11 Layout: us
+```
+
+
+2. Download installation scripts: (you need to install in `/opt/talkyard/` for the backup scripts to work):
+
+
+```bash
+cd /opt/
+git clone https://github.com/debiki/talkyard-prod-one.git talkyard
+cd talkyard
+```
+
+
+
+3. Append system config settings, so the ElasticSearch Docker container will work, and so Nginx can handle more connections:
+
+
+```sh
+if ! grep -q 'Talkyard' /etc/sysctl.conf; then
+  log_message 'Amending the /etc/sysctl.conf config...'
+  cat <<-EOF >> /etc/sysctl.conf
+		
+		###################################################################
+		# Talkyard settings
+		#
+		vm.swappiness=1            # turn off swap, default = 60
+		net.core.somaxconn=8192    # Up the max backlog queue size (num connections per port), default = 128. Sync with conf/web/server-listen-http(s).conf.
+		vm.max_map_count=262144    # ElasticSearch wants this, default = 65530
+		                           # See: https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
+		EOF
+
+  log_message 'Reloading the system config...'
+  sysctl --system
+fi
+```
+
+
+4. Redis doesn't want Transparent Huge Pages (THP) enabled, because that creates latency and memory usage issues with Redis. Disable THP now directly, and also:
+
+
+```sh
+echo 'Disabling Transparent Huge Pages (for Redis)...'
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+if ! grep -q 'transparent_hugepage/enabled' /etc/rc.local; then
+  echo 'Disabling Transparent Huge Pages after reboot, in /etc/rc.local...'
+  # Insert ('i') before the last line ('$') in rc.local, which always? is
+  # 'exit 0' in a new Ubuntu installation.
+  sed -i -e '$i # For Talkyard and the Redis Docker container:\necho never > /sys/kernel/mm/transparent_hugepage/enabled\n' /etc/rc.local
+fi
+```
+
+
+5. Simplify troubleshooting:
+
+
+```sh
+if ! grep -q 'HISTTIMEFORMAT' ~/.bashrc; then
+  log_message 'Adding history settings to .bashrc...'
+  cat <<-EOF >> ~/.bashrc
+		
+		###################################################################
+		export HISTCONTROL=ignoredups
+		export HISTCONTROL=ignoreboth
+		export HISTSIZE=10100
+		export HISTFILESIZE=10100
+		export HISTTIMEFORMAT='%F %T %z  '
+		EOF
+fi
+```
+
+> Set execute permission on your script:
+> chmod +x script-name-here.sh
+>
+> To run your script, enter:
+> bash script-name-here.sh
+
+
+Make sure that the following lines were added to `/etc/sysctl.conf`:
+
+
+```conf
+###################################################################
+# Talkyard settings
+#
+vm.swappiness=1            # turn off swap, default = 60
+net.core.somaxconn=8192    # Up the max backlog queue size (num connections per port), default = 128. Sync with conf/web/server-listen-http(s).conf.
+vm.max_map_count=262144    # ElasticSearch wants this, default = 65530
+                           # See: https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
+```
+
+
+6. [Install Docker CE](https://docs.docker.com/install/linux/docker-ce/centos/)
+
+
+7. Edit config values:
+
+
+```bash
+nano conf/play-framework.conf  # fill in values in the Required Settings section
+nano .env                      # type a database password
+```
+
+
+Note:
+
+* If you don't edit play.http.secret.key in play-framework.conf, the server won't start.
+* A PostgreSQL database user, named talkyard, gets created automatically, by the rdb Docker container, with the password you type in the .env file. You don't need to do anything.
+* If you're using a non-standard port, say 8080 (which you do if you're using Vagrant), then comment in talkyard.port=8080 in play-framework.conf.
+
+
+
+tbc https://github.com/debiki/talkyard-prod-one  /   https://www.talkyard.io/for-developers
