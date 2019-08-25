@@ -282,7 +282,7 @@ generated_inputs = np.column_stack((xs,zs))
 
 noise = np.random.uniform(-1, 1, (observations,1))
 
-targets = 3*xs - 4*zs + 7 + noise
+generated_targets = 3*xs - 4*zs + 7 + noise
 
 np.savez('tf-model-data-example', inputs=generated_inputs, targets=generated_targets)
 ```

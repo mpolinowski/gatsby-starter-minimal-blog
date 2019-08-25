@@ -41,6 +41,7 @@ module.exports = {
                 maxWidth: 1024,
                 quality: 90,
                 withWebp: true,
+                tracedSVG: true,
                 linkImagesToOriginal: false,
                },
           },
