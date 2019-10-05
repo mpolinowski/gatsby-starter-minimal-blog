@@ -1,9 +1,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Link, graphql } from 'gatsby'
+import { graphql } from 'gatsby'
 import styled from 'styled-components'
 
-import { Layout, Article, Wrapper, Button, SectionTitle } from '../components'
+import { Layout, Article, Wrapper, SectionTitle, SocialButtons } from '../components'
 
 const Content = styled.div`
   grid-column: 2;
@@ -56,11 +56,7 @@ const IndexPage = ({
         <p>
           I am a chemist, physicist and devOps enthusiast - currently I focus on reactive web applications and IoT service networks. And this is my lab notepad.
         </p>
-        <Link to="/categories">
-          <Button big>
-            Categories
-          </Button>
-        </Link>
+          <SocialButtons/>
       </Hero>
       <Content>
         <SectionTitle>Latest Articles</SectionTitle>
