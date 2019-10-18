@@ -1,0 +1,187 @@
+---
+date: "2019-06-09"
+title: "Getting Started with Windows Server 2019"
+categories:
+  - Windows
+  - Docker
+---
+
+![Central, Hong Kong](./photo-45fdsfd6d_64567fh6drethg4_d.jpg)
+
+
+
+## Windows Admin Center
+
+[Windows Admin Center](https://docs.microsoft.com/en-us/windows-server/manage/windows-admin-center/understand/windows-admin-center) is a locally deployed, browser-based app for managing servers, clusters, hyper-converged infrastructure, and Windows 10 PCs. It comes at no additional cost beyond Windows and is ready to use in production. You can download it from [here](https://www.microsoft.com/en-us/software-download/windowsinsiderpreviewserver).
+
+
+Run the installation and start the program. This will open the main Admin Center Dashboard inside your default web browser:
+
+
+![Windows Server 2019](./Windows_Server_2019_01.png)
+
+
+Now click on __Add__ in the top right and choose __Add Windows Server__:
+
+
+![Windows Server 2019](./Windows_Server_2019_02.png)
+
+
+Switch to your Windows Server 2019 desktop and open the __Server Manager__ to find out the __Server Name__ of the server you want to add:
+
+
+![Windows Server 2019](./Windows_Server_2019_03.png)
+
+
+You can now go back to the Admin Center and type in the server name you want to search for. Once it is found on the local network, add your login credentials and click on __Add__:
+
+
+![Windows Server 2019](./Windows_Server_2019_04.png)
+
+
+Your server should now show up under __All connections__:
+
+
+![Windows Server 2019](./Windows_Server_2019_05.png)
+
+
+Click on it to open the __Server Management Dashboard__:
+
+
+![Windows Server 2019](./Windows_Server_2019_06.png)
+
+
+
+### Setting up User Accounts
+
+To add users search for `Local users & groups` under __Tools__ and click on __Add__ to create a new user account:
+
+
+![Windows Server 2019](./Windows_Server_2019_07.png)
+
+
+Then click on __Manage Membership__ to add your new user to all the necessary __Groups__:
+
+
+![Windows Server 2019](./Windows_Server_2019_08.png)
+
+
+
+
+
+## Setting up an IIS Webserver
+
+
+To be able to host static content from your Windows Server we need to add the __IIS Webserver__. Additionally we can add an FTP Service to be able to upload content we want to be hosting. For this search for `Roles & features` under Tools and add the __Webserver (IIS)__ role to your server:
+
+
+![Windows Server 2019](./Windows_Server_2019_09.png)
+
+
+After the installation is finished, open the IP address of your Windows Server inside your default web browser - e.g. `http://192.168.2.63`. You should be able to see the default IIS start page:
+
+
+![Windows Server 2019](./Windows_Server_2019_10.png)
+
+
+
+### Adding your own static website
+
+We now have a web server that is serving the default IIS startpage. Let's replace this default content with some more meaningful content. We already installed the __FTP Service__ we now have to create a FTP Site that has access to the directory where IIS stores it's default content. First open the Server Manager and access the __Internet Information Services (IIS) Manager__:
+
+
+![Windows Server 2019](./Windows_Server_2019_11.png)
+
+
+We can see the default IIS website under `Sites`. Right-click `Sites` to add your __FTP Site__:
+
+
+![Windows Server 2019](./Windows_Server_2019_12.png)
+
+
+Give your FTP site a name and point it to the default directory where IIS stores it's web content - `C:\inetpub\wwwroot`:
+
+
+![Windows Server 2019](./Windows_Server_2019_13.png)
+
+
+Leave the binding at it's default settings, let the FTP site activate automatically and deactivate SSL (we only want to access the server via FTP over our local network):
+
+
+![Windows Server 2019](./Windows_Server_2019_14.png)
+
+
+For the Authentication choose __basic__ and either allow all users to access this service or create a special `ftpuser` for it:
+
+
+![Windows Server 2019](./Windows_Server_2019_15.png)
+
+
+Make sure that the __Windows Firewall__ does not block the FTP service:
+
+
+![Windows Server 2019](./Windows_Server_2019_16.png)
+
+
+You might also have to add a rule that explicitly opens port 21 for incoming traffic - though, be careful with this setting in case you want to expose your server to the internet. It is fine for a local server:
+
+
+![Windows Server 2019](./Windows_Server_2019_17.png)
+
+
+Here I encountered a little issue. When I tried to access the FTP Server with an FTP client I received an error message `530 User cannot log in, home directory inaccessible`:
+
+
+![Windows Server 2019](./Windows_Server_2019_18.png)
+
+
+Back in the __Internet Information Services (IIS) Manager__ click on your FTP site and double-click __FTP Authorization Rules__:
+
+
+![Windows Server 2019](./Windows_Server_2019_19.png)
+
+
+Click on __Add Rule__ in the top right and specify your `ftpuser` to have __Read/Write__ access:
+
+
+![Windows Server 2019](./Windows_Server_2019_20.png)
+
+
+Then restart the FTP Service from the __Services Manager__:
+
+
+![Windows Server 2019](./Windows_Server_2019_21.png)
+
+
+Now it works as expected:
+
+
+![Windows Server 2019](./Windows_Server_2019_22.png)
+
+
+I was now able to read the content of the FTP root directory but I was still lacking the right to write or delete from this directory. So back on the server right-click the directory, select properties and security. Here you can add the FTP User and give him full control over the directory:
+
+
+![Windows Server 2019](./Windows_Server_2019_23.png)
+
+
+Now upload your static website content to the FTP site directory and open web servers IP address inside your browser. You should be able to see your website.
+
+
+But another issue that I found was that all my images, saved in the `.webp` image format, were blocked by the webserver. The problem here was the missing __MIME Type__. Just open the  __Internet Information Services (IIS) Manager__ again and click on the `Default Web Site` and double-click __MIME Types__:
+
+
+![Windows Server 2019](./Windows_Server_2019_24.png)
+
+
+Here you can add the `image/webp` type manually:
+
+
+![Windows Server 2019](./Windows_Server_2019_25.png)
+
+
+And the website was up and running:
+
+
+![Windows Server 2019](./Windows_Server_2019_26.png)
+
