@@ -1,0 +1,41 @@
+---
+date: "2019-06-14"
+title: "Downloading Docker Images for Offline Use"
+categories:
+  - Linux
+  - Docker
+---
+
+![Mustang, Nepal](./photo-456t66d_64567fh6dgjkhg4_d.jpg)
+
+
+## Why would you want to do it?
+
+I am planning to use a Windows or macOS Computer that is connected to a company VPN to download images from the Docker Hub. Those images need to be transfered to a local LINUX server (behind a firewall that makes downloading large file impossible, due to constant slow downs and disconnects) that cannot be connected to the VPN.
+
+
+## Docker Save
+
+
+For this I want to use the [docker save](https://docs.docker.com/engine/reference/commandline/save/) function to download the [hello-world](https://hub.docker.com/_/hello-world) image:
+
+
+```bash
+docker pull hello-world
+docker save -o hello-world_image.docker hello-world
+```
+
+
+![Offline Docker Images](./Offline_docker_Images_01.png)
+
+
+Now transfer the file to the offline computer and load the image from the file:
+
+
+```bash
+sudo docker load -i hello-world_image.docker
+sudo docker run hello-world
+```
+
+
+![Offline Docker Images](./Offline_docker_Images_02.png)
