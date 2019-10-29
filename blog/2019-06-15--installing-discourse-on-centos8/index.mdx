@@ -20,6 +20,7 @@ categories:
 - [Access Discourse](#access-discourse)
 - [Sign Up and Create Admin Account](#sign-up-and-create-admin-account)
 - [Upgrade](#upgrade)
+- [Install Plugins](#install-plugins)
 
 <!-- /TOC -->
 
@@ -34,7 +35,7 @@ sudo mkdir /opt/discourse
 ```
 
 
-Clone the [official Discourse Docker Image](https://github.com/discourse/discourse_docker) into this /var/discourse folder:
+Clone the [official Discourse Docker Image](https://github.com/discourse/discourse_docker) into this /opt/discourse folder:
 
 
 ```bash
@@ -50,7 +51,7 @@ Switch to the `/opt/discourse` directory:
 
 
 ```bash
-cd /var/discourse
+cd /opt/discourse
 ```
 
 
@@ -202,3 +203,96 @@ If you are still unable to register a new admin account via email, see the [Crea
 ## Upgrade
 
 To upgrade Discourse to the latest version, visit `/admin/upgrade` and follow the instructions.
+
+
+
+## Install Plugins
+
+In this tutorial, we’ll install [Discourse Spoiler Alert](https://meta.discourse.org/t/discourse-spoiler-alert/12650) and [Discourse Sitemap](https://meta.discourse.org/t/discourse-sitemap-plugin/40348) plugin.
+
+
+To install a [plugin in Discourse](https://meta.discourse.org/tags/plugins), it needs to be placed in `/var/www/discourse/plugins`. However, this is inside the container - and changes to the container are wiped when it is rebuilt! So, the container definition is what needs to be edited.
+
+
+1. On your Centos system enter the Discourse directory: `cd /opt/discourse`.
+2. Edit the app configuration file: `nano containers/app.yml`.
+3. Access the Github page ([discourse-sitemap](https://github.com/discourse/discourse-sitemap), [discourse-spoiler-alert](https://github.com/discourse/discourse-spoiler-alert)) of each plugin you want to install, click on the green __Clone or download__ button and copy the web URL.
+4. Now paste the URLs into the plugin section of the `app.yml` file:
+
+
+```yaml
+## Plugins go here
+## see https://meta.discourse.org/t/19157 for details
+hooks:
+  after_code:
+    - exec:
+        cd: $home/plugins
+        cmd:
+          - git clone https://github.com/discourse/docker_manager.git
+          - git clone https://github.com/discourse/discourse-spoiler-alert.git
+          - git clone https://github.com/discourse/discourse-sitemap.git
+```
+
+5. And rebuild the container: `./launcher rebuild app`
+
+
+What to do when you receive this error message:
+
+
+```bash
+[root@localhost discourse]# ./launcher rebuild app
+Ensuring launcher is up to date
+Fetching origin
+remote: Enumerating objects: 3, done.
+remote: Counting objects: 100% (3/3), done.
+remote: Compressing objects: 100% (3/3), done.
+remote: Total 3 (delta 0), reused 2 (delta 0), pack-reused 0
+Unpacking objects: 100% (3/3), done.
+From https://github.com/discourse/discourse_docker
+   b637998..20e812e  master     -> origin/master
+Updating Launcher
+Updating b637998..20e812e
+error: Your local changes to the following files would be overwritten by merge:
+        discourse-setup
+Please commit your changes or stash them before you merge.
+Aborting
+failed to update
+```
+
+
+Stash your changes and rerun the rebuild command:
+
+
+```bash
+cd /opt/discourse
+git stash
+git pull
+./launcher rebuild app
+```
+
+
+Once the rebuild process is done open Discourse again inside your browser and head to `/admin/plugins` to activate your new plugins:
+
+
+![Discourse on CentOS 8](./Discourse_02.png)
+
+
+All Plugins are update through `/admin/upgrade`:
+
+
+![Discourse on CentOS 8](./Discourse_03.png)
+
+
+The sitemap plugin publishes two files:
+
+
+1. `/sitemap.xml` : the regular Google Sitemap format
+2. `/news.xml` : special sitemap for Google News containing all new topics in the last three days
+
+
+To test the spoiler plugin start a new thread and post:
+
+
+```
+[spoiler]This is a spoiler[/spoiler] 
+```
