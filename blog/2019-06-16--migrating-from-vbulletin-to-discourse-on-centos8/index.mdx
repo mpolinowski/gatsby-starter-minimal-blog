@@ -255,7 +255,7 @@ Note ALTER / GRANT works automatically on next user login, while UPDATEing direc
 
 __Activate Public Registration__
 
-If you have activated the __Invite Only__ mode during development it might be a good idea to deactivate it during the import, if you don't want to have to verify each added user:
+If you have activated the __User Approvale__ mode during development it might be a good idea to deactivate it during the import, if you don't want to have to manually review each added user:
 
 
 ![Discourse Migration on CentOS 8](./Discourse_Migrastion_13.png)
@@ -332,49 +332,38 @@ Loading existing categories...
 Loading existing posts...
 Loading existing topics...
 
-importing groups...
-       17 / 17 (100.0%)  [2293583 items/min]  
+importing groups...                                                                            17 / 17 (100.0%)  [2707941 items/min]                                                          
 importing users
-    20180 / 20180 (100.0%)  [4186 items/min]   
-importing top level categories...
-        5 / 5 (100.0%)  [2612785 items/min]  
-importing child categories...
-
-importing topics...
-
+20180 / 20180 (100.0%)  [706239 items/min] 
+importing top level categories...  
+5 / 5 (100.0%)  [6177924 items/min]                                                           
+importing child categories... 
+importing topics... 
 importing posts...
-        5 / 5 (100.0%)  [17209 items/min]  
-importing attachments...
-    16116 / 5 (322320.0%)  
-Closing topics...
+5 / 5 (100.0%)  [290527 items/min]                                                            
+importing attachments...   
+20182 / 5 (403640.0%)  
+Closing topics... 
+Postprocessing posts... 
+20182 / 20182 (100.0%)
 
-Postprocessing posts...
-    16116 / 16116 (100.0%)  
-
-Updating topic status
-
-Updating bumped_at on topics
-
+Updating topic status 
+Updating bumped_at on topics 
 Updating last posted at on users
-
 Updating last seen at on users
-
 Updating topic reply counts...
-    20181 / 20181 (100.0%)  [19936 items/min]  ]  
+20181 / 20181 (100.0%)  [19985 items/min]  ] 
 Updating first_post_created_at...
-
 Updating user post_count...
-
 Updating user topic_count...
-
 Updating topic users
-
 Updating post timings
-
 Updating featured topic users
-
 Updating featured topics in categories
-        9 / 9 (100.0%)  [6411 items/min]  ]  
-Updating user topic reply counts
-    14439 / 20181 ( 71.5%)  [62 items/min]     ]  
+9 / 9 (100.0%)  [6433 items/min]   ]                                                          
+Updating user topic reply counts 
+20181 / 20181 (100.0%)  [21271 items/min]  ] 
+Resetting topic counters 
+
+Done (00h 02min 06sec)        
 ```

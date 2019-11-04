@@ -6,7 +6,7 @@ require 'htmlentities'
 
 class ImportScripts::VBulletin < ImportScripts::Base
   BATCH_SIZE = 1000
-  DBPREFIX = "vb5."
+  DBPREFIX = ""
   ROOT_NODE = 2
 
   # CHANGE THESE BEFORE RUNNING THE IMPORTER
