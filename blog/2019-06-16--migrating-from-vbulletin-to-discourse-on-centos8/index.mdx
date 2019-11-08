@@ -367,3 +367,76 @@ Resetting topic counters
 
 Done (00h 02min 06sec)        
 ```
+
+
+
+
+## SQL Database debugging
+
+
+```bash
+sudo service mysql start
+
+mysql -h hostname -u root -p
+
+mysqladmin -u root -h hostname.blah.org -p password 'new-password'
+
+mysqldump -u root -ppassword --opt >/tmp/alldatabases.sql
+
+mysqldump -u username -ppassword --databases databasename >/tmp/databasename.sql
+
+mysqldump -c -u username -ppassword databasename tablename > /tmp/databasename.tablename.sql
+
+mysql -u username -ppassword databasename < /tmp/databasename.sql
+```
+
+
+```sql
+MariaDB [(none)]> create database [databasename];
+
+MariaDB [(none)]> show databases;
+
+MariaDB [(none)]> use [db name];
+
+MariaDB [(none)]> show tables;
+
+MariaDB [(none)]> describe [table name];
+
+MariaDB [(none)]> drop database [database name];
+
+MariaDB [(none)]> drop table [table name];
+
+MariaDB [(none)]> SELECT * FROM [table name];
+
+MariaDB [(none)]> show columns from [table name];	
+
+MariaDB [(none)]> SELECT * FROM [table name] WHERE [field name] = "whatever";	
+
+MariaDB [(none)]> SELECT * FROM [table name] WHERE name = "Alex" AND phone_number = '3444444';
+
+MariaDB [(none)]> SELECT * FROM [table name] WHERE name != "Alex" AND phone_number = '3444444' order by phone_number;
+
+MariaDB [(none)]> SELECT * FROM [table name] WHERE name like "Alex%" AND phone_number = '3444444';
+
+MariaDB [(none)]> SELECT * FROM [table name] WHERE rec RLIKE "^a$";
+
+MariaDB [(none)]> SELECT [col1],[col2] FROM [table name] ORDER BY [col2] DESC;
+
+MariaDB [(none)]> SELECT COUNT(*) FROM [table name];
+
+MariaDB [(none)]> SET PASSWORD FOR 'user'@'hostname' = PASSWORD('passwordhere');
+
+MariaDB [(none)]> DELETE from [table name] where [field name] = 'whatever';
+
+MariaDB [(none)]> FLUSH PRIVILEGES;
+
+MariaDB [(none)]> alter table [table name] drop column [column name];
+
+MariaDB [(none)]> alter table [table name] add column [new column name] varchar (20);
+
+MariaDB [(none)]> alter table [table name] change [old column name] [new column name] varchar (50);
+
+MariaDB [(none)]> Make a column bigger.	alter table [table name] modify [column name] VARCHAR(3);
+
+MariaDB [(none)]> LOAD DATA INFILE '/tmp/filename.csv' replace INTO TABLE [table name] FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' (field1,field2,field3);
+```
