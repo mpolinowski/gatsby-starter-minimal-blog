@@ -54,6 +54,8 @@ public
 public/
 .cache/
 blog/2019-06-16--migrating-from-vbulletin-to-discourse-on-centos8/instar-kundenforum-2019-10-31-073459-v20191025005204.tar.gz
+blog/2019-06-16--migrating-from-vbulletin-to-discourse-on-centos8/node-table.csv
+blog/2019-06-16--migrating-from-vbulletin-to-discourse-on-centos8/node-table.txt
 
 # Gatsby context
 .gatsby-context.js
