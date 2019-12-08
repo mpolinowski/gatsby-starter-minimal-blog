@@ -4,6 +4,7 @@ import styled from 'styled-components'
 import github from '../assets/github.png'
 import linkedin from '../assets/linkedin.png'
 import twitter from '../assets/twitter.png'
+import flickr from '../assets/flickr.png'
 
 const CategoriesButton = styled.button`
   background: ${props => props.theme.colors.primary};
@@ -94,6 +95,29 @@ const TwitterButton = styled.button`
   }
 `
 
+const FlickrButton = styled.button`
+  background: #1a8f6e;
+  background-image: url(${flickr});
+  background-color: ${props => props.theme.colors.primary};
+  width: 45px;
+  height: 45px;
+  margin-right: 7px;
+  background-size: contain;
+  transition: all ${props => props.theme.transitions.normal};
+  border-radius: .2rem;
+  border: none;
+  padding: -2px;
+  color: ${props => props.theme.colors.white};
+  &:hover {
+    background-color: ${props => props.theme.colors.primaryLight};
+    cursor: pointer;
+    transform: translateY(-2px);
+  }
+  &:focus {
+    outline: none;
+  }
+`
+
 const Wrapper = styled.section`
   display: inline-flex;
   align-items: right;
@@ -111,6 +135,9 @@ const SocialButtons = () => (
     </a>
     <a href="https://www.linkedin.com/in/mike-polinowski-6396ba121/" target="_blank" rel="noopener noreferrer">
       <LinkedinButton/>
+    </a>
+    <a href="https://www.flickr.com/people/149680084@N06/" target="_blank" rel="noopener noreferrer">
+      <FlickrButton/>
     </a>
     <a href="https://twitter.com/MikePolinowski" target="_blank" rel="noopener noreferrer">
       <TwitterButton/>

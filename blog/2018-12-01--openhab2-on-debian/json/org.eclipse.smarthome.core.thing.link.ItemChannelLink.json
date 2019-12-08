@@ -1,0 +1,21 @@
+{
+  "TriggerAlarm_OfficeCam -\u003e mqtt:topic:AlarmTrigger:OfficeCam": {
+    "class": "org.eclipse.smarthome.core.thing.link.ItemChannelLink",
+    "value": {
+      "channelUID": {
+        "segments": [
+          "mqtt",
+          "topic",
+          "AlarmTrigger",
+          "OfficeCam"
+        ]
+      },
+      "configuration": {
+        "properties": {
+          "profile": "system:default"
+        }
+      },
+      "itemName": "TriggerAlarm_OfficeCam"
+    }
+  }
+}

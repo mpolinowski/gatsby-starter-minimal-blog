@@ -1,0 +1,98 @@
+{
+  "mqtt:topic:AlarmTrigger": {
+    "class": "org.eclipse.smarthome.core.thing.internal.ThingImpl",
+    "value": {
+      "label": "Trigger Alarm",
+      "bridgeUID": {
+        "segments": [
+          "mqtt",
+          "broker",
+          "MQTTBroker"
+        ]
+      },
+      "channels": [
+        {
+          "acceptedItemType": "Switch",
+          "kind": "STATE",
+          "uid": {
+            "segments": [
+              "mqtt",
+              "topic",
+              "AlarmTrigger",
+              "OfficeCam"
+            ]
+          },
+          "channelTypeUID": {
+            "segments": [
+              "mqtt",
+              "switch"
+            ]
+          },
+          "label": "AlarmTrigger",
+          "configuration": {
+            "properties": {
+              "formatBeforePublish": "{\"val\":\"1\"}",
+              "commandTopic": "alarm/pushalarm",
+              "stateTopic": ""
+            }
+          },
+          "properties": {},
+          "defaultTags": []
+        }
+      ],
+      "configuration": {
+        "properties": {}
+      },
+      "properties": {},
+      "uid": {
+        "segments": [
+          "mqtt",
+          "topic",
+          "AlarmTrigger"
+        ]
+      },
+      "thingTypeUID": {
+        "segments": [
+          "mqtt",
+          "topic"
+        ]
+      }
+    }
+  },
+  "mqtt:broker:MQTTBroker": {
+    "class": "org.eclipse.smarthome.core.thing.internal.BridgeImpl",
+    "value": {
+      "label": "IN-8015 MQTT Broker",
+      "channels": [],
+      "configuration": {
+        "properties": {
+          "publickeypin": false,
+          "clientid": "paho416610927448",
+          "lastwill_qos": 1,
+          "qos": 1,
+          "port": 1883,
+          "retain": false,
+          "host": "192.168.2.116",
+          "secure": false,
+          "certificatepin": false,
+          "keep_alive_time": 60000,
+          "reconnect_time": 60000
+        }
+      },
+      "properties": {},
+      "uid": {
+        "segments": [
+          "mqtt",
+          "broker",
+          "MQTTBroker"
+        ]
+      },
+      "thingTypeUID": {
+        "segments": [
+          "mqtt",
+          "broker"
+        ]
+      }
+    }
+  }
+}

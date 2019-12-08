@@ -1,0 +1,899 @@
+---
+date: "2019-02-07"
+title: "MotionEye Video Surveillance"
+categories:
+  - IoT
+---
+
+![Harbin, China](./photo-kt456d_645dhfh6dgjkhg4_d.jpg)
+
+
+<!-- TOC -->
+
+- [Debian Installation](#debian-installation)
+  - [SSH Access](#ssh-access)
+  - [Set a static IP Address](#set-a-static-ip-address)
+- [motionEye Installation](#motioneye-installation)
+- [Adding your IP Camera](#adding-your-ip-camera)
+  - [Enabling Actions](#enabling-actions)
+    - [HTTP Request Example](#http-request-example)
+      - [Alarm - Full HD Models](#alarm---full-hd-models)
+      - [Alarm - VGA Models](#alarm---vga-models)
+      - [PTZ - Full HD Models](#ptz---full-hd-models)
+      - [Preset Positions - Full HD Models](#preset-positions---full-hd-models)
+- [Configuring MotionEye](#configuring-motioneye)
+- [Accessing MotionEye over HTTPS](#accessing-motioneye-over-https)
+  - [Installation of FirewallD on Debian](#installation-of-firewalld-on-debian)
+  - [Installation of NGINX on Debian](#installation-of-nginx-on-debian)
+    - [Set up a Virtual Host for MotionEye](#set-up-a-virtual-host-for-motioneye)
+    - [Create the SSL Certificate](#create-the-ssl-certificate)
+    - [Configure Nginx to Use SSL](#configure-nginx-to-use-ssl)
+      - [Adjust the Nginx Configuration to Use SSL](#adjust-the-nginx-configuration-to-use-ssl)
+
+<!-- /TOC -->
+
+
+
+[Motion](https://motion-project.github.io) is a highly configurable program that monitors video signals from many types of cameras (Network cameras via HTTP, RTSP and RTMP). Set it up to monitor your INSTAR IP camera, watch birds, check in on your pet, create timelapse videos and more.
+
+
+[motionEye](https://github.com/ccrisan/motioneye/wiki) is a web frontend for the motion daemon, written in Python.
+
+
+We are going to install both on a regular Intel Core machine - like an [Intel NUC](https://www.intel.com/content/www/us/en/products/boards-kits/nuc/kits.html), [Asus P-Series](https://www.asus.com/Mini-PCs/Mini-PC-PN60/) or [Gigabyte Brix](https://www.gigabyte.com/Mini-PcBarebone/BRIX). This decision was made due to the high CPU demands of working with 1080p video.
+
+
+But we already wrote a tutorial on how to install [motionEye on a Raspberry Pi](/Advanced_User/IOBroker_on_Raspberry_Pi/motionEye/#installation-of-motioneye) in case that this amount of processing power is sufficient for your use case.
+
+
+## Debian Installation
+
+We choose to install __Debian 9 Linux__ on our mini PC - you can check the [motionEye Wiki](https://github.com/ccrisan/motioneye/wiki/Installation) for more Linux flavours. To create the installation USB stick we [downloaded the minimal amd64 image](https://www.debian.org/CD/netinst/) and used the tool __Etcher__ to prepare the USB stick. We used the same approach to prepare a SD card with the openHABian image - you can just [follow the steps from that tutorial](/Advanced_User/openHABian_on_Raspberry_Pi/#install-openhabian-on-a-raspberry-pi). Once the USB stick is ready, deactivate secure boot in your mini PC's BIOS and boot from the stick. We are not going to need a desktop environment. But __make sure that you install the SSH service__ - as we are going to use the SSH service to set up the Debian server.
+
+
+### SSH Access
+
+To enable SSH login for a root user on Debian Linux system you need to first configure SSH server. Open `/etc/ssh/sshd_config` and change the following line:
+
+```bash
+FROM:
+PermitRootLogin without-password
+TO:
+PermitRootLogin yes
+```
+
+Once you made the above change restart your SSH server:
+
+```bash
+# /etc/init.d/ssh restart
+[ ok ] Restarting ssh (via systemctl): ssh.service.
+```
+
+From now on you will be able to ssh login as a root:
+
+```bash
+$ ssh root@192.168.2.111
+root@192.168.2.111's password: 
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+```
+
+
+### Set a static IP Address
+
+By default, you will find the following configuration within the `/etc/network/interfaces` network config file:
+
+
+```
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+allow-hotplug eth0
+iface eth0 inet static
+      address 192.168.2.111
+      netmask 255.255.255.0
+      gateway 192.168.2.1
+```
+
+
+<div class="dangerbox">
+    <h3>Be aware:</h3>
+    <p>In newer versions of Debian the Ethernet interface will not be called <strong>eth0</strong> anymore. The file contains the line <code>iface eth0 inet dhcp</code> before you set it from <strong>dhcp</strong> to <strong>static</strong> - the identification between <strong>iface</strong> and <strong>inet</strong> is the id of your ethernet interface (don't change it to eth0!).</p>
+</div>
+
+
+To configure a static DNS edit `/etc/resolv.conf` file, and include the IP address of your preferred nameserver eg:
+
+
+```
+nameserver 8.8.8.8
+```
+
+
+<br/><br/>
+
+
+## motionEye Installation
+
+_All commands require root; use sudo before each command or become root using su._
+
+1. Install motion, ffmpeg and v4l-utils:
+
+
+```bash
+ apt-get install motion ffmpeg v4l-utils
+```
+
+
+2. Install the dependencies from the repositories:
+
+
+```bash
+apt-get install python-pip python-dev python-setuptools curl libssl-dev libcurl4-openssl-dev libjpeg-dev libz-dev
+```
+
+
+3. Install motioneye, which will automatically pull Python dependencies (tornado, jinja2, pillow and pycurl):
+
+
+```bash
+pip install motioneye
+```
+
+
+4. Prepare the configuration directory:
+
+
+```bash
+ mkdir -p /etc/motioneye
+ cp /usr/local/share/motioneye/extra/motioneye.conf.sample /etc/motioneye/motioneye.conf
+```
+
+
+5. Prepare the media directory:
+
+
+```bash
+ mkdir -p /var/lib/motioneye
+```
+
+
+6. Add an init script, configure it to run at startup and start the motionEye server:
+
+
+```bash
+  cp /usr/local/share/motioneye/extra/motioneye.systemd-unit-local /etc/systemd/system/motioneye.service
+  systemctl daemon-reload
+  systemctl enable motioneye
+  systemctl start motioneye
+```
+
+
+7. To upgrade to the newest version of motioneye, after it has been released, just issue:
+
+
+```bash
+pip install motioneye --upgrade
+systemctl restart motioneye
+```
+
+
+<br/><br/>
+
+
+## Adding your IP Camera
+
+Open the MotionEye Interface with your web browsers by typing in your Raspberry Pi's IP address followed by the Port 8765 - e.g. `http://192.168.2.115:8765`. The default login is __admin__ __without a password__. We already covered how [to add JPG, MJPEG and RTSP cameras](/Advanced_User/IOBroker_on_Raspberry_Pi/motionEye/#adding-your-ip-camera) earlier. Follow the instructions there and add all your INSTAR VGA, HD and Full HD cameras.
+
+
+We now want to go a step further and add buttons to control the basic camera functions. MotionEye offers a list of __Action Buttons__ that we can use with our camera's [CGI commands](/Advanced_User/CGI_Commands/). They automatically map to Shell Scripts that we have to put into the `/etc/motioneye` directory. The following actions are defined:
+
+
+* lock
+* unlock
+* light_on
+* light_off
+* alarm_on
+* alarm_off
+* up
+* right
+* down
+* left
+* zoom_in
+* zoom_out
+* preset1 to preset9
+
+
+While the available actions are limited to the above set, the commands executed can be practically anything. We will choose to execute HTTP GET commands to send [CGI commands](/Advanced_User/CGI_Commands/) to our cameras.
+
+
+### Enabling Actions
+
+motionEye will look inside its configuration folder `/etc/motioneye` for executable files named [action]_[cameraid], where action is one of the available actions (listed above) and cameraid is the id of the camera on top of which the action button will be displayed.
+
+For example, on a setup using the default configuration, the presence of the executable file `/etc/motioneye/alarm_on_1` tells motionEye to show an alarm bell button for the camera number one. The file will be executed upon pressing the button. Buttons will have distinctive icons that correspond to the name of the action.
+
+
+#### HTTP Request Example
+
+Let's say that you want to issue an HTTP request to your INSTAR IP camera when you click the "turn alarm on" button of your first camera (with id 1). Create the following bash script and make it executable:
+
+
+##### Alarm - Full HD Models
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_01.png)
+
+---
+
+
+```bash
+touch /etc/motioneye/alarm_on_1
+chmod +x /etc/motioneye/alarm_on_1
+nano /etc/motioneye/alarm_on_1
+```
+
+
+Then type in (or paste) the following contents, save and exit nano (Ctrl-O, Enter, Ctrl-X):
+
+
+```bash
+#!/bin/bash
+
+URL="http://admin:instar@192.168.2.113/param.cgi?cmd=setscheduleex&-ename=md&-week0=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP&-week1=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP&-week2=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP&-week3=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP&-week4=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP&-week5=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP&-week6=PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP"
+METHOD="GET"
+TIMEOUT="5"
+curl -X $METHOD --connect-timeout $TIMEOUT "$URL" > /dev/null
+```
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_02.png)
+
+---
+
+
+We will use the [Alarm Schedule CGI Command](https://wiki.instar.com/1080p_Series_CGI_List/Alarm_Menu/Schedule/) for an INSTAR Full HD Camera in this example - but the URL can be set to any [CGI command](https://wiki.instar.com/Advanced_User/CGI_Commands/) that you need!
+
+
+Note that the command activates the motion alarm detection of your camera 24/7. If you are already using a alarm schedule that deactivates your camera alarm during certain times - just replace some of those __P__'s with __N__'s to reflect your personal schedule and set MotionEye up to switch between __Alarm Always ON__ / __Your Alarm Schedule__.
+
+
+To switch the alarm off we repeat those steps for:
+
+
+```bash
+touch /etc/motioneye/alarm_off_1
+chmod +x /etc/motioneye/alarm_off_1
+nano /etc/motioneye/alarm_off_1
+```
+
+
+Then type in (or paste) the following contents, save and exit nano (Ctrl-O, Enter, Ctrl-X):
+
+
+```bash
+#!/bin/bash
+
+URL="http://admin:instar@192.168.2.113/param.cgi?cmd=setscheduleex&-ename=md&-week0=NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&-week1=NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&-week2=NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&-week3=NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&-week4=NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&-week5=NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&-week6=NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
+METHOD="GET"
+TIMEOUT="5"
+curl -X $METHOD --connect-timeout $TIMEOUT "$URL" > /dev/null
+```
+
+
+Reload the MotionEye interface - the buttons should now be visible in the camera 1 view port (you might have to click onto the video are once to have them appear). If the buttons are not displayed, make sure that you made the shell scripts executable.
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_03.png)
+
+---
+
+
+##### Alarm - VGA Models
+
+
+```bash
+touch /etc/motioneye/alarm_on_3
+chmod +x /etc/motioneye/alarm_on_3
+nano /etc/motioneye/alarm_on_3
+```
+
+
+Then type in (or paste) the following contents, save and exit nano (Ctrl-O, Enter, Ctrl-X):
+
+
+```bash
+#!/bin/bash
+
+URL="http://admin:instar@192.168.2.117/set_alarm.cgi?motion_armed=1"
+METHOD="GET"
+TIMEOUT="5"
+curl -X $METHOD --connect-timeout $TIMEOUT "$URL" > /dev/null
+```
+
+
+```bash
+touch /etc/motioneye/alarm_off_3
+chmod +x /etc/motioneye/alarm_off_3
+nano /etc/motioneye/alarm_off_3
+```
+
+
+Then type in (or paste) the following contents, save and exit nano (Ctrl-O, Enter, Ctrl-X):
+
+
+```bash
+#!/bin/bash
+
+URL="http://admin:instar@192.168.2.117/set_alarm.cgi?motion_armed=0"
+METHOD="GET"
+TIMEOUT="5"
+curl -X $METHOD --connect-timeout $TIMEOUT "$URL" > /dev/null
+```
+
+
+##### PTZ - Full HD Models
+
+
+```bash
+touch /etc/motioneye/left_2 /etc/motioneye/right_2 /etc/motioneye/down_2 /etc/motioneye/up_2
+chmod +x /etc/motioneye/left_2 /etc/motioneye/right_2 /etc/motioneye/down_2 /etc/motioneye/up_2
+```
+
+__STEP LEFT__
+
+*left_2*
+
+```bash
+#!/bin/bash
+
+URL="http://admin:instar@192.168.2.116/ptzctrl.cgi?-step=&-act=left"
+METHOD="GET"
+TIMEOUT="5"
+curl -X $METHOD --connect-timeout $TIMEOUT "$URL" > /dev/null
+```
+
+__STEP RIGHT__
+
+*right_2*
+
+```bash
+#!/bin/bash
+
+URL="http://admin:instar@192.168.2.116/ptzctrl.cgi?-step=&-act=right"
+METHOD="GET"
+TIMEOUT="5"
+curl -X $METHOD --connect-timeout $TIMEOUT "$URL" > /dev/null
+```
+
+__STEP DOWN__
+
+
+*down_2*
+
+```bash
+#!/bin/bash
+
+URL="http://admin:instar@192.168.2.116/ptzctrl.cgi?-step=&-act=down"
+METHOD="GET"
+TIMEOUT="5"
+curl -X $METHOD --connect-timeout $TIMEOUT "$URL" > /dev/null
+```
+
+__STEP UP__
+
+
+*up_2*
+
+```bash
+#!/bin/bash
+
+URL="http://admin:instar@192.168.2.116/ptzctrl.cgi?-step=&-act=up"
+METHOD="GET"
+TIMEOUT="5"
+curl -X $METHOD --connect-timeout $TIMEOUT "$URL" > /dev/null
+```
+
+
+##### Preset Positions - Full HD Models
+
+
+```bash
+touch /etc/motioneye/preset1_2 /etc/motioneye/preset2_2
+chmod +x /etc/motioneye/preset1_2 /etc/motioneye/preset2_2
+```
+
+
+__Go to Preset 1__
+
+
+*preset1_2*
+
+```bash
+#!/bin/bash
+
+URL="http://admin:instar@192.168.2.116/param.cgi?cmd=preset&-act=goto&-number=0"
+METHOD="GET"
+TIMEOUT="5"
+curl -X $METHOD --connect-timeout $TIMEOUT "$URL" > /dev/null
+```
+
+
+__Go to Preset 2__
+
+
+*preset2_2*
+
+```bash
+#!/bin/bash
+
+URL="http://admin:instar@192.168.2.116/param.cgi?cmd=preset&-act=goto&-number=1"
+METHOD="GET"
+TIMEOUT="5"
+curl -X $METHOD --connect-timeout $TIMEOUT "$URL" > /dev/null
+```
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_04.png)
+
+---
+
+
+<br/><br/>
+
+
+## Configuring MotionEye
+
+Open the side menu and select the camera you want to edit from the drop down menu `1` - activate the __Advanced Settings__ `2`. Let's go through a few interesting menus that MotionEye offers:
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_05.png)
+
+---
+
+
+`3` MotionEye gives you both a administrator and a regular user account. You should add a password for the admin account here. The regular user will not have access to this part of the menu.
+
+
+`4` We setup MotionEye to grab the 1080p RTSP stream from our camera. Here you can scale down the resolution - to save storage and - of particulate interest if you are using a Raspberry Pi to run MotionEye - to reduce the demand on your CPU. The framerate here is set to 2fps by default - which means that you end up with very choppy video. It again depends on your CPU and the amount of cameras you want to add if you might be able to go higher. You can also rotate your video image in 90 degree increments.
+
+
+`5` Set an upper and lower detection threshold for the integrated motion detection. How much percent of the image has to change to register as an alarm? And do you want to discard the alarm, when more than a set percentage of the image changes - as it will probably just be a light that turned on and does not interest you.
+
+
+`6` Do you have a constant movement in the background of your image that keeps triggering the alarm? Use the mask feature to have MotionEye learn which part of the image it should not use for the motion detection.
+
+
+`7` Have MotionEye draw a box around the change it detects inside the frame - this is useful to debug false alerts. Also looks really fancy.
+
+
+`8` The Email notification is self-explanatory - the fields are identical to [SMTP server configuration](https://wiki.instar.com/Web_User_Interface/720p_Series/Alarm/SMTP_Server/) of an INSTAR IP camera. More interesting is the web hook function below that is identical the [Alarmserver](https://wiki.instar.com/Web_User_Interface/1080p_Series/Alarm/Alarm_Server/) of your INSTAR camera.
+
+
+`9` Make sure to set the video recording to __h.264 (.mp4)__ if you want to display the recorded video in the MotionEye user interface! Otherwise you can use the __HEVC (.mp4)__ to apply the highly effective h.265 compression and make your videos as small as possible.
+
+
+`10` Choose between a continuous recording and a recording triggered by motion detection. Alarm videos will continue to record as long as the motion continues. It makes sense to limit the maximum file size - this will create more small videos instead of one huge one that is hard to handle. You can also choose to automatically delete files again after a set time.
+
+
+`11` Upload your alarm videos to an __FTP__ or __SFTP Server__. Or mirror them to __Dropbox__ or __Google Drive__.
+
+
+`12` MotionEye re-streams all your camera's video streams in a browser compatible format.
+
+
+`13` A photo camera icon will appear in the camera viewport when you activate the __Manual Capture__, allowing you to take a quick snapshot.
+
+
+<br/><br/>
+
+
+## Accessing MotionEye over HTTPS
+
+If you want to access the MotionEye interface over the internet, it necessary to first protect your server. In the following we want to do two things:
+
+1. Close all unnecessary ports with a firewall
+2. Install a web proxy that enables us to add SSL encryption
+
+
+We are going to use [FirewallD](https://firewalld.org) as firewall and [NGINX](http://nginx.org/) as web proxy. Running behind the Nginx webserver (using Nginx as a reverse proxy) can be useful when:
+
+* you want to use HTTPS with motionEye
+* you want to serve multiple websites (including motionEye) on the same webserver (accessible at the same IP address over port 80)
+* you want to take advantage of various Nginx modules (such as rate limiting or HTTP authentication)
+
+
+### Installation of FirewallD on Debian
+
+Install FirewallD by running the following commands:
+
+```bash
+apt-get update
+apt-get install firewalld
+```
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_06.png)
+
+---
+
+
+To open the default __http__ and __https ports__ run the following commands:
+
+```bash
+firewall-cmd --permanent --zone=public --add-service=https --add-service=http
+firewall-cmd --reload
+firewall-cmd --list-all
+```
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_07.png)
+
+---
+
+
+If you now try to access the MotionEye interface on port __8765__ you will see that it is going to timeout - as the request will be blocked by FirewallD. We can temporarily open all ports that MotionEye uses - in my case this is the main UI port 8765 and the streaming ports for three cameras __8081__, __8082__, __8083__.
+
+```bash
+firewall-cmd --permanent --zone=public --add-port=8765/tcp --add-port=8081-8083/tcp
+firewall-cmd --reload
+firewall-cmd --list-all
+```
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_08.png)
+
+---
+
+
+You should now be able to access the MotionEye interface again - __be aware__ that this command did not use the __--permanent__ flag. That means, when you restart your server, or reload the firewall, those rules will be discarded.
+
+
+### Installation of NGINX on Debian
+
+```bash
+apt-get install nginx
+```
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_09.png)
+
+---
+
+
+At the end of the installation process, Debian 9 starts Nginx. The web server should already be up and running. We can check with the systemd init system to make sure the service is running by typing:
+
+
+```bash
+systemctl status nginx
+```
+
+
+When you have your server's IP address, enter it into your browser's address bar. You should see the default Nginx landing page:
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_10.png)
+
+---
+
+
+#### Set up a Virtual Host for MotionEye
+
+Here's the content of a sample virtual host file that normally goes to `/etc/nginx/sites-enabled/motioneye.local`:
+
+```
+touch /etc/nginx/sites-enabled/motioneye.local
+nano /etc/nginx/sites-enabled/motioneye.local
+```
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_11.png)
+
+---
+
+
+_motioneye.local_
+
+```
+server {
+    listen 80;
+    listen [::]:80;
+    location /dashboard/ {
+        proxy_pass            http://127.0.0.1:8765/;
+        proxy_read_timeout    1800;
+        proxy_connect_timeout 1800;
+        access_log off;
+    }
+}
+```
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_12.png)
+
+---
+
+
+Make sure that your NGINX configuration passes the test and reload the service:
+
+
+```
+nginx -t
+service nginx reload
+```
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_13.png)
+
+---
+
+
+Your MotionEye UI will be available at `http://192.168.2.111/dashboard/`  (__this has to be changed to the IP address of your MotionEye server!__). It's important to note the trailing slashes at location /dashboard/ and at `http://127.0.0.1:8765/`. They make sure paths are correctly passed around when forwarding the HTTP requests to motionEye.
+
+
+#### Create the SSL Certificate
+
+We can create a self-signed key and certificate pair with OpenSSL in a single command:
+
+
+```bash
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt
+```
+
+These options will create both a key file and a certificate. We will be asked a few questions about our server in order to embed the information correctly in the certificate.
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_14.png)
+
+---
+
+
+Both of the files you created will be placed in the appropriate subdirectories of the `/etc/ssl` directory.
+
+While we are using OpenSSL, we should also create a strong Diffie-Hellman group, which is used in negotiating [Perfect Forward Secrecy](https://en.wikipedia.org/wiki/Forward_secrecy) with clients.
+
+
+We can do this by typing:
+
+
+```bash
+openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048
+```
+
+This may take a few minutes, but when it's done you will have a strong DH group at `/etc/ssl/certs/dhparam.pem` that we can use in our configuration.
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_15.png)
+
+---
+
+
+#### Configure Nginx to Use SSL
+
+We have created our key and certificate files under the /etc/ssl directory. Now we just need to modify our Nginx configuration to take advantage of these.
+
+We will make a few adjustments to our configuration:
+
+* We will create a configuration snippet containing our SSL key and certificate file locations.
+* We will create a configuration snippet containing strong SSL settings that can be used with any certificates in the future.
+* We will adjust our Nginx server blocks to handle SSL requests and use the two snippets above.
+
+
+First, let's create a new Nginx configuration snippet in the `/etc/nginx/snippets` directory:
+
+```bash
+nano /etc/nginx/snippets/self-signed.conf
+```
+
+Within this file, we just need to set the ssl_certificate directive to our certificate file and the ssl_certificate_key to the associated key. In our case, this will look like this:
+
+```
+ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
+ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
+```
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_16.png)
+
+---
+
+
+Next, we will create another snippet that will define some SSL settings. This will set Nginx up with a strong SSL cipher suite and enable some advanced features that will help keep our server secure.
+
+The parameters we will set can be reused in future Nginx configurations, so we will give the file a generic name:
+
+```bash
+nano /etc/nginx/snippets/ssl-params.conf
+```
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_17.png)
+
+---
+
+
+```
+# from https://cipherli.st/
+# and https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html
+
+ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+ssl_prefer_server_ciphers on;
+ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
+ssl_ecdh_curve secp384r1;
+ssl_session_cache shared:SSL:10m;
+ssl_session_tickets off;
+ssl_stapling on;
+ssl_stapling_verify on;
+resolver 8.8.8.8 8.8.4.4 valid=300s;
+resolver_timeout 5s;
+# Disable preloading HSTS for now.  You can use the commented out header line that includes
+# the "preload" directive if you understand the implications.
+#add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
+add_header Strict-Transport-Security "max-age=63072000; includeSubdomains";
+add_header X-Frame-Options DENY;
+add_header X-Content-Type-Options nosniff;
+
+ssl_dhparam /etc/ssl/certs/dhparam.pem;
+```
+
+
+Because we are using a self-signed certificate, the SSL stapling will not be used. Nginx will simply output a warning, disable stapling for our self-signed cert, and continue to operate correctly.
+
+
+##### Adjust the Nginx Configuration to Use SSL
+
+Now that we have our snippets, we can adjust our Nginx configuration to enable SSL.
+
+In this guide we are using the default server block file in the `/etc/nginx/sites-available` directory. If you are using a different server block file, substitute its name in the below commands. Before we go any further, let's back up our current server block file:
+
+
+```bash
+cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
+```
+
+
+Now, open the server block file to make adjustments:
+
+
+```bash
+nano /etc/nginx/sites-available/default
+```
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_18.png)
+
+---
+
+
+We will be modifying this configuration so that unencrypted HTTP requests are automatically redirected to encrypted HTTPS. This offers the best security for our sites. If you want to allow both HTTP and HTTPS traffic, use the alternative configuration that follows.
+
+
+Next, we need to start a new server block directly below to contain the remaining configuration. We can uncomment the two listen directives that use port 443. We can add http2 to these lines in order to enable HTTP/2 within this block. Afterwards, we just need to include the two snippet files we set up:
+
+
+```bash
+server {
+	listen 80 default_server;
+  listen [::]:80 default_server;
+	return 301 https://$server_name$request_uri;
+
+	# SSL configuration
+	#
+	listen 443 ssl http2 default_server;
+	listen [::]:443 ssl http2 default_server;
+	include snippets/self-signed.conf;
+	include snippets/ssl-params.conf;
+```
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_19.png)
+
+---
+
+
+Now we have to add the SSL configuration to our MotionEye server block in `/etc/nginx/sites-enabled/motioneye.local`:
+
+
+```
+server {
+    listen 80;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+	  server_name 192.168.2.111;
+    include snippets/self-signed.conf;
+    include snippets/ssl-params.conf;
+    location /dashboard/ {
+        proxy_pass            http://127.0.0.1:8765/;
+        proxy_read_timeout    1800;
+        proxy_connect_timeout 1800;
+        access_log off;
+    }
+}
+```
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_20.png)
+
+---
+
+
+Now we can restart Nginx to implement our new changes:
+
+
+```bash
+nginx -t
+```
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_21.png)
+
+---
+
+
+Notice the warning in the beginning. As noted earlier, this particular setting throws a warning since our self-signed certificate can't use SSL stapling. This is expected and our server can still encrypt connections correctly.
+
+If your output matches the above, your configuration file has no syntax errors. We can safely restart Nginx to implement our changes:
+
+
+```bash
+service nginx reload
+```
+
+
+---
+
+![Motion Eye and INSTAR IP Cameras](./MotionEye_22.png)
+
+---

@@ -1,0 +1,67 @@
+---
+date: "2018-11-28"
+title: "Node-RED on Android"
+categories:
+  - IoT
+---
+
+![Shenzhen, China](./photo-kt456d_645dhfh6dgjkhg4_d.jpg)
+
+
+<!-- TOC -->
+
+
+<!-- /TOC -->
+
+
+[Termux](https://termux.com) now allows you to install [Node-RED](https://nodered.org) directly on your Android phone or tablet - turning it into the a powerful smarthome gateway.
+
+
+---
+
+![INSTAR MQTT on Android](./Node-RED_on_Android_01.jpg)
+
+---
+
+
+Start by installing [Termux](https://termux.com) on your Android device and start the app. Make sure that everything is up-to-date by running `apt update && apt upgrade`.
+
+
+---
+
+![INSTAR MQTT on Android](./Node-RED_on_Android_02.jpg)
+
+---
+
+
+[Node-RED](https://nodered.org) runs in [Node.js](https://nodejs.org/) which we can now install on our Android device by running the following command: `apt install coreutils nano nodejs`.
+
+
+---
+
+![INSTAR MQTT on Android](./Node-RED_on_Android_03.jpg)
+
+---
+
+
+Now with [Node.js](https://nodejs.org/) in place we can install [Node-RED](https://nodered.org) with the following command: `npm install -g --unsafe-perm node-red`.
+
+
+---
+
+![INSTAR MQTT on Android](./Node-RED_on_Android_04.jpg)
+
+---
+
+
+You can start up [Node-RED](https://nodered.org) by typing `node-red`.
+
+
+---
+
+![INSTAR MQTT on Android](./Node-RED_on_Android_05.jpg)
+
+---
+
+
+Now start your default Android web browser and open `http://localhost:1880` to access the [Node-RED](https://nodered.org) interface.
