@@ -1,0 +1,237 @@
+---
+date: "2019-08-05"
+title: "MQTT Networks with OpenHAB 2"
+categories:
+  - MQTT
+  - Smarthome
+  - IoT
+---
+
+![Bhaktapur, Nepal](./photo-kt456d_645dhfh6dgjkhg4_d.jpg)
+
+<!-- TOC -->
+
+- [OpenHAB Configuration though Paper UI](#openhab-configuration-though-paper-ui)
+  - [MQTT Binding](#mqtt-binding)
+
+<!-- /TOC -->
+
+
+## OpenHAB Configuration though Paper UI
+
+The Paper UI is a new interface that helps setting up and configuring your openHAB instance. It does not (yet) cover all aspects, so you still need to resort to textual configuration files.
+
+
+__Add-on management__: Easily install or uninstall [openHAB add-ons](https://www.openhab.org/docs/configuration/%7B%7Bdocu%7D%7D/addons/uis/paper/readme.html):
+
+
+### MQTT Binding
+
+Go to the __Add-Ons__ Menu and click on the __Bindings Tab__. We are going to use the MQTT protocol to communicate with our INSTAR IP camera from OpenHAB. To be able to connect to the [INSTAR MQTT Server](/Advanced_User/INSTAR_MQTT_Broker) we need to install the [MQTT Binding](https://www.openhab.org/addons/bindings/mqtt/) - make sure that you choose the __Version 2__ (at the moment of writing this is the _2.4.0_ version).
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_1.png)
+
+---
+
+
+Now switch to your OpenHAB Inbox:
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_2.png)
+
+---
+
+
+Click on the __+__ icon to add the MQTT Binding:
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_3.png)
+
+---
+
+
+Find the MQTT Binding inside the list and select it:
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_4.png)
+
+---
+
+
+Click on __Add Manually__:
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_5.png)
+
+---
+
+
+And choose the __MQTT Broker__:
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_6.png)
+
+---
+
+
+With the newest Firmware for your INSTAR Full HD camera, you can use the camera as MQTT Broker. For older cameras models please [install a MQTT broker like Mosquito first](/Software/Linux/Node-RED/#installing-mosquitto). Add your brokers IP address and the broker port - by default this is __1883__. Note that we are first not going to use [TLS encryption](https://community.openhab.org/t/mqtt-binding-and-ssl/40622). We can add it once we are able to establish the connection:
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_7.png)
+
+---
+
+
+Your INSTAR Full HD cameras MQTT login is the one you added in the [MQTT Menu](/Advanced_User/INSTAR_MQTT_Broker/) (if you are using Mosquitto, use the password you defined when [setting up your server](/Software/Linux/Node-RED/#configuring-mosquitto)). Then save your setting by clicking on the blue confirmation button:
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_8.png)
+
+---
+
+
+Back in the __Things Menu__ click on __+__ again - this time to add a __Thing__ that we can use for an _PaperUI_ button later on:
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_9.png)
+
+---
+
+
+Click on __MQTT Binding__:
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_10.png)
+
+---
+
+
+And __Add Manually__:
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_11.png)
+
+---
+
+
+This time we need to add a __Generic MQTT Thing__:
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_12.png)
+
+---
+
+
+I am going to create switch that activates or deactivates the alarm areas of an INSTAR IN-8015FHD camera. The `Thing ID` represents the MQTT topic that we will have to address to send the command to the selected camera. As __Bridge__ you need to select the MQTT broker you just created. Click on the blue button to confirm:
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_13.png)
+
+---
+
+
+Back in the __Thing Menu__ click to edit the __Thing__ you just created:
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_14.png)
+
+---
+
+
+Click on the blue __+__ button to add a __Channel__ to the __Thing__:
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_15.png)
+
+---
+
+
+I am going to use an __ON/Off Switch__. The MQTT topic to go to switch the first alarm area is created by adding the prefix `instar` and your cameras LAN MAC Address (e.g. `10:D1:DC:21:31:A8` - without the colons) to the corresponding INSTAR MQTT topic `alarm/area1/enable` -> `instar/10D1DC2131A8/alarm/area1/enable` and as message payload we need to add `{"val":"1"}` and `{"val":"0"}` to either switch the area on or off. Click on __Save__ to confirm:
+
+
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_16.png)
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_16a.png)
+
+---
+
+
+By clicking on the blue icon in front of the created channel we are now able to link it to a switch in the __OpenHAB PaperUI__:
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_17.png)
+
+---
+
+
+Click on __Create new item...__:
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_18.png)
+
+---
+
+
+Click on __Link__:
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_19.png)
+
+---
+
+
+You can now click on __Control__ to open the __PaperUI__:
+
+
+---
+
+![OpenHAB 2 with your INSTAR IP Camera](./OpenHAB2_20.png)
+
+---
+
+
+Our Alarm Areas can now be switched from the OpenHAB __Paper UI__. Clicking the switch will send the MQTT message to our MQTT server that is going to notify our camera to either switch area 1 on or off.
+
+
+All right that's it - the Binding was successfully added and we are now able to control all of our camera functions with the MQTT interface.

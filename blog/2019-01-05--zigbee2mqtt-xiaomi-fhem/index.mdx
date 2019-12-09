@@ -4,8 +4,11 @@ title: "Zigbee Sensors in FHEM"
 categories:
   - LINUX
   - IoT
+  - MQTT
   - Smarthome
 ---
+
+import GifContainer from "../../src/components/ImageContainer";
 
 ![Hongkong](./photo-19194765263_69ad0f_o.png)
 
@@ -1006,7 +1009,7 @@ And then go and add it to our plot - voilá :
 
 
 
-<!-- ## Using Zigbee Devices to control INSTAR IP Cameras in Node-RED
+ ## Using Zigbee Devices to control INSTAR IP Cameras in Node-RED
 
 We now set up the Zigbee Bridge, connected Zigbee sensors and made sure that the messages are send to our Mosquitto MQTT server. We also found out the topics that our bridge uses for each sensors to publish its messages - `zigbee2mqtt/motion_pir_sensor`, `zigbee2mqtt/temp_hum_sensor` and `zigbee2mqtt/smart_button` - and what kind of payload to expect.
 
@@ -1082,13 +1085,10 @@ After that follows a __String Node__ (this node type [has to be installed manual
 And last but not least we add a __Link Node__ to plug it in to all 4 sequences for the for the 4 alarm areas. Now every time we single-click the Wireless Button all areas are activated. A double-click deactivates them:
 
 
----
-![Zigbee2MQTT](./nodered_x01.gif)
-
----
+<GifContainer gifUrl="/assets/gif/nodered_x01.gif" alt="Zigbee2MQTT" />
 
 
-We attached a __Debug Node__ to the MQTT input to visualize the input given by the Wireless Button - __Note__ that only the `single` and `double` click trigger the Alarm Area Sequences - the rest of the input options can be used for other functions. -->
+We attached a __Debug Node__ to the MQTT input to visualize the input given by the Wireless Button - __Note__ that only the `single` and `double` click trigger the Alarm Area Sequences - the rest of the input options can be used for other functions.
 
 
 
