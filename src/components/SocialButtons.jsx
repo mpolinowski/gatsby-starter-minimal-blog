@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link } from 'gatsby'
 import styled from 'styled-components'
+import cv from '../assets/cv.png'
 import github from '../assets/github.png'
 import linkedin from '../assets/linkedin.png'
 import twitter from '../assets/twitter.png'
@@ -20,6 +21,28 @@ const CategoriesButton = styled.button`
   box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
   &:hover {
     background: ${props => props.theme.colors.primaryLight};
+    cursor: pointer;
+    transform: translateY(-2px);
+  }
+  &:focus {
+    outline: none;
+  }
+`
+
+const CvButton = styled.button`
+  background-image: url(${cv});
+  background-color: ${props => props.theme.colors.primary};
+  width: 45px;
+  height: 45px;
+  margin-right: 7px;
+  background-size: contain;
+  transition: all ${props => props.theme.transitions.normal};
+  border-radius: .2rem;
+  border: none;
+  padding: -2px;
+  color: ${props => props.theme.colors.white};
+  &:hover {
+    background-color: ${props => props.theme.colors.primaryLight};
     cursor: pointer;
     transform: translateY(-2px);
   }
@@ -125,10 +148,13 @@ const Wrapper = styled.section`
 
 const SocialButtons = () => (
   <Wrapper>
-    <Link to="/categories">
+    <Link to="/categories/">
       <CategoriesButton big>
         Categories
       </CategoriesButton>
+    </Link>
+    <Link to="/curriculum-vitae/">
+      <CvButton/>
     </Link>
     <a href="https://github.com/mpolinowski" target="_blank" rel="noopener noreferrer">
       <GithubButton/>
