@@ -1,0 +1,85 @@
+---
+date: "2019-09-08"
+title: "Elasticsearch 7 with Docker Compose"
+categories:
+  - Docker
+  - Elasticsearch
+
+---
+
+![ShenZhen, China](./photo-kt456d_645dhfh6dgjkhg4_d.jpg)
+
+
+
+Let's run a __Elasticsearch 7.5__ as a single node cluster using Docker Compose with XPack disabled. To run the Elasticsearch 7 Docker image as a single node, you have to set `discovery.type` to `single-node`. At startup, the bootstrap checks are bypassed. The single node will elect itself as the master node and will not join a cluster with any other node.
+
+
+A complete docker-compose.yml example to run a single node Elasticsearch 7 Cluster including Kibana:
+
+
+```yaml
+version: '3.7'
+
+services:
+
+  # Elasticsearch Docker Images: https://www.docker.elastic.co/
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.5.0
+    container_name: elasticsearch
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+
+  kibana:
+    container_name: kibana
+    image: docker.elastic.co/kibana/kibana:7.5.0
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+
+volumes:
+  elasticsearch-data:
+    driver: local
+```
+
+
+
+Start Elasticsearch and Kibana using Docker Compose:
+
+
+```bash
+docker-compose up -d
+```
+
+
+Your Elasticsearch node will startup now, and after a couple of seconds, you can reach it at `http://localhost:9200/`. Kibana should be running at `http://localhost:5601` now. To shut down Elasticsearch and Kibana run:
+
+
+```bash
+docker-compose down
+```
+
+
+In case you also would like to remove the docker volume while shutting down run:
+
+
+```bash
+docker-compose down -v
+```

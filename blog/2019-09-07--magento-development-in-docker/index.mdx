@@ -76,8 +76,6 @@ apache2:
   container_name: magento2.3
 ```
 
-<!-- giaphugroup -->
-
 Create two folders named `html` and `db` and point the two volumes declared above to those directories. In my case there is a `src` folder in the same directory as the compose YAML file. This folder contains both the db and html folder.
 
 Those instruction will set up a MySQL database, PHPMyAdmin and a Ubuntu container with Apache2, PHP 7.1.26, Webmin, Composer and Git.
