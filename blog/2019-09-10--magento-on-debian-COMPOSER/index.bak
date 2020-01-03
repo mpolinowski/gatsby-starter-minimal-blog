@@ -1,0 +1,392 @@
+---
+date: "2019-09-10"
+title: "Magento 2 Installation with NGINX on Debian"
+categories:
+  - NGINX
+
+---
+
+![Angkor Wat, Cambodia](./photo-kt456d_645dhfh6dgjkhg4_d.jpg)
+
+<!-- TOC -->
+
+
+
+<!-- /TOC -->
+
+
+## Server Setup
+
+Start by setting up a server with the latest version of Debian 9 that already includes latest versionsof php and mysql/mariadb. After the install run the following commands so the base system is updated:
+
+
+```bash
+apt-get update && apt-get upgrade
+```
+
+
+Next we can install the control panel Webmin with [Virtualmin](https://www.virtualmin.com). This will get everything installed like mail servers, bind, spam and virus detection. Virtualmin also has easy install of SSL certificates and managing server limits.:
+
+
+
+```bash
+wget http://software.virtualmin.com/gpl/scripts/install.sh
+chmod +x install.sh
+sh ./install.sh
+```
+
+
+![Magento2 on Debian9 with NGINX](./magento_nginx_01.png)
+
+
+__PROBLEM__: A preinstalled version of NGINX/PHPMyAdmin/PHP could not be uninstalled by the installation script above:
+
+```bash
+sudo apt-get purge phpmyadmin # Removes PHPMyAdmin
+sudo apt-get remove nginx nginx-common # Removes all but config files.
+sudo apt-get purge nginx nginx-common # Removes everything.
+sudo apt-get purge `dpkg -l | grep php| awk '{print $2}' |tr "\n" " "` # Removes PHP
+sudo apt-get autoremove
+```
+
+
+Now the installation script ran through to the point where it threw another error:
+
+```
+Systemd service fail2ban cannot be created unless a command is given
+[WARNING] The following errors occurred during installation:
+
+  ◉ Postinstall configuration returned an error.
+```
+
+Which is detailed on the [Virtualmin Bugtracker](https://www.virtualmin.com/node/64425). It is recommended to ignore the error for now, disable firewallD and use IPTables instead to block ports.
+
+
+Now that you have run the Virtualmin script, you need to stop Apache which it uses by default and install NGINX:
+
+
+```bash
+systemctl stop apache2.service
+apt-get install nginx
+apt-get install webmin-virtualmin-nginx webmin-virtualmin-nginx-ssl
+```
+
+
+Next we need to install all the php modules that are required by Magento 2:
+
+
+```bash
+apt-get install -y php7.3 libapache2-mod-php7.3 php7.3 php7.3-common php7.3-gd php7.3-mysql php7.3-mcrypt php7.3-curl php7.3-intl php7.3-xsl php7.3-mbstring php7.3-zip php7.3-bcmath php7.3-iconv php7.3-soap
+```
+
+Now you are ready to setup your Magento 2 website. Make sure you have pointed your domain name to your server IP. You can access the Webmin control panel  with your LINUX user:
+
+
+```
+https://domain.com:10000
+```
+
+
+![Magento2 on Debian9 with NGINX](./magento_nginx_02.png)
+
+
+Now you need to disable Apache and activate Nginx. In the Virtualmin tab, choose System Settings -> Features and Plugins and uncheck:
+
+
+* Apache website
+* BIND DNS domain
+* Mail for Domain
+* SSL website
+* DAV Login
+* Protected web directories
+
+
+And Check:
+
+
+* Nginx website
+* Nginx SSL website
+
+
+![Magento2 on Debian9 with NGINX](./magento_nginx_03.png)
+
+
+__Problem__ at this point I received an error message that MySQL was not installed on this system - even though it is installed:
+
+
+```bash
+apt-get install mysql-client mysql-server
+Reading package lists... Done
+Building dependency tree       
+Reading state information... Done
+mysql-client is already the newest version (5.7.28-1debian9).
+mysql-server is already the newest version (5.7.28-1debian9).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+```
+
+Ok, the problem was that I already set a password and had to add it under __System Settings__ / __MySQL Servers__!
+
+
+
+Now click Create Virtual Server:
+
+
+
+![Magento2 on Debian9 with NGINX](./magento_nginx_04.png)
+
+
+
+![Magento2 on Debian9 with NGINX](./magento_nginx_05.png)
+
+
+And another Error:
+
+```bash
+Failed to create virtual server : No virtual domains file (virtual_alias_maps) was found in your Postfix configuration!
+```
+
+This error pointed to a [configuration problem for the Postfix server](https://www.virtualmin.com/node/7616).
+
+
+Once you have setup your domain name as a new server, you will need to click on Server Configuration.  Click on Website Options and change PHP script execution mode to FPM.
+
+
+
+![Magento2 on Debian9 with NGINX](./magento_nginx_06.png)
+
+
+
+
+Right above you will see Manage SSL Certificate. If you click on that option, you can choose Let’s Encrypt tab and Request Certificate.
+
+
+
+![Magento2 on Debian9 with NGINX](./magento_nginx_07.png)
+
+
+
+Now go back to the command line and install sudo and assign the new user, which will be the name of your domain in most cases. If in question, check what Virtualmin created as a username for the domain:
+
+
+```bash
+apt-get install sudo
+usermod -aG sudo domain
+```
+
+
+## Magento 2 Installation
+
+
+Start with installing composer:
+
+
+```bash
+sudo apt-get install composer
+```
+
+To install Magento 2 with composer, you will need to setup an Access key with your account. Go to:
+
+
+```bash
+https://marketplace.magento.com/customer/account/
+
+```
+
+
+The public key will be the username and the private key will be the password. Run this composer command:
+
+
+```bash
+mkdir /opt/magento
+cd /opt/magento
+sudo composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition .
+```
+
+
+And another __Problem__
+
+
+```
+[ErrorException] "continue" targeting switch is equivalent to "break". Did you mean to use "continue 2"?
+```
+
+
+You can [fix this the dirty way](https://github.com/composer/composer/issues/7783) by editing /usr/share/php/Composer/DependencyResolver/RuleSetGenerator.php at line 286 Just replace "continue" with "continue 2":
+
+
+```php
+protected function addRulesForJobs($ignorePlatformReqs)
+    {
+        foreach ($this->jobs as $job) {
+            switch ($job['cmd']) {
+                case 'install':
+                    if (!$job['fixed'] && $ignorePlatformReqs && preg_match(PlatformRepository::PLATFORM_PACKAGE_REGEX, $job['packageName'])) {
+                        continue 2;
+                    }
+```
+
+
+Now the download script ran .... into another __Problem__:
+
+
+```bash
+Your requirements could not be resolved to an installable set of packages.
+
+  Problem 1
+    - magento/product-community-edition 2.3.3 requires php ~7.1.3||~7.2.0||~7.3.0 -> your PHP version (7.4.1) does not satisfy that requirement.
+```
+
+
+To the downgrade....
+
+
+```bash
+apt-get install php7.3
+a2dismod php7.4.1
+a2enmod php7.3
+service nginx restart
+```
+
+
+The active version for the php-cli is still reporting to be using PHP7.4.1:
+
+
+```bash
+php -v
+rm /etc/alternatives/php
+ln -s /usr/bin/php7.3 /etc/alternatives/php
+```
+
+
+And to the next __Problems__:
+
+
+```bash
+the requested PHP extension bcmath is missing from your system.
+the requested PHP extension curl is missing from your system.
+the requested PHP extension dom is missing from your system.
+the requested PHP extension mbstring is missing from your system.
+the requested PHP extension gd is missing from your system.
+the requested PHP extension intl is missing from your system.
+the requested PHP extension pdo_mysql is missing from your system.
+the requested PHP extension soap is missing from your system.
+the requested PHP extension zip is missing from your system.
+```
+
+
+```bash
+apt install php7.3-bcmath
+apt-get install php7.3-curl
+apt-get install php7.3-xml
+apt-get install php7.3-mbstring
+apt-get install php7.3-gd
+apt-get install php7.3-intl
+apt-get install php7.3-mysql
+apt-get install php7.3-soap
+apt-get install php7.3-zip
+```
+
+
+
+Now you need to configure Nginx for Magento 2. -> https://github.com/magenx/Magento-nginx-config/tree/master/magento2
+
+
+
+![Magento2 on Debian9 with NGINX](./magento_nginx_08.png)
+
+
+Replace the `/etc/nginx/nginx.conf` configuration with [this one](https://github.com/magenx/Magento-nginx-config/blob/master/magento2/nginx.conf):
+
+
+```yaml
+user  nginx;
+worker_processes  auto;
+worker_rlimit_nofile 100000;
+
+## Load Dynamic Modules ##
+#load_module modules/ngx_pagespeed.so;
+#load_module modules/ngx_http_perl_module.so;
+#load_module modules/ngx_http_brotli_filter_module.so;
+#load_module modules/ngx_http_brotli_static_module.so;
+
+pid        /var/run/nginx.pid;
+
+events {
+    worker_connections  10524;
+    multi_accept on;
+       }
+
+http   {
+    index         index.html index.php;
+    include       mime.types;
+    default_type  application/octet-stream;
+    
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" $status $bytes_sent "$http_referer" "$http_user_agent" - "$request_id"';
+
+    access_log  /var/log/nginx/access.log  main;
+    error_log   /var/log/nginx/error.log  error;
+	
+    keepalive_timeout   5;
+    autoindex		off;
+    server_tokens       off;
+    port_in_redirect	off;
+    sendfile            on;
+    tcp_nopush          on;
+    tcp_nodelay         on;
+    
+    client_max_body_size 64m;
+    client_body_buffer_size 128k;
+    client_header_buffer_size 16k;
+    large_client_header_buffers 4 16k;
+    
+    fastcgi_buffer_size 16k;
+    fastcgi_buffers 4 16k;
+	
+    # Microcache
+    #proxy_cache_path /tmp/nginx levels=1:2 keys_zone=microcache:100M max_size=500M inactive=2h;
+    
+    ## Flood protection example (see conf_m2/extra_protect.conf)
+    # limit_req_zone $binary_remote_addr zone=zone1:35m rate=1r/s;
+    # limit_req_zone $binary_remote_addr zone=zone2:35m rate=1r/s;
+    # limit_req_zone $binary_remote_addr zone=zone3:35m rate=1r/s;
+
+    ## Cache open FD
+    open_file_cache max=35000 inactive=30s;
+    open_file_cache_valid 30s;
+    open_file_cache_min_uses 2;
+    
+    ##  SSL global settings
+    #ssl_session_cache		shared:SSL:45m;
+    #ssl_session_timeout	30m;
+    #ssl_protocols		TLSv1.2 TLSv1.3;
+    #ssl_ciphers                "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:!3DES:!aNULL:!MD5";
+    #ssl_prefer_server_ciphers	on;
+    #ssl_dhparam 		/etc/ssl/certs/dhparams.pem;
+    #ssl_ecdh_curve		secp384r1;
+    #ssl_buffer_size		4k;
+    
+    #ssl_stapling on;
+    #ssl_trusted_certificate	/etc/letsencrypt/live/example.com/chain.pem;
+    #resolver 8.8.8.8 8.8.4.4 valid=3600s;
+    #resolver_timeout 5s;
+	
+    ## Get real ip from proxy
+    #set_real_ip_from 127.0.0.1;
+	
+    ## Main domain configuration
+    include /etc/nginx/sites-enabled/*.conf;
+
+}
+```
+
+Add a folder `sites-enabled` and add the [magento configuration](https://github.com/magenx/Magento-nginx-config/blob/master/magento2/sites-available/magento2.conf) and a [default config](https://github.com/magenx/Magento-nginx-config/blob/master/magento2/sites-available/default.conf)
+
+
+
+
+It is also wise to shut down Webmin when you are using it to manage the server. From the command line, type:
+
+
+```bash
+service webmin stop
+```
