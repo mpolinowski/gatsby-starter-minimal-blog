@@ -83,6 +83,46 @@ module.exports = {
         icon: config.favicon,
       },
     },
-    'gatsby-plugin-offline',
+    {
+      resolve: `gatsby-plugin-offline`,
+      options: {
+        precachePages: [``, `/categories/`, `/curriculum-vitae/`],
+        navigateFallback: `/offline-plugin-app-shell-fallback/index.html`,
+        // Only match URLs without extensions or the query `no-cache=1`.
+        // So example.com/about/ will pass but
+        // example.com/about/?no-cache=1 and
+        // example.com/cheeseburger.jpg will not.
+        // We only want the service worker to handle our "clean"
+        // URLs and not any files hosted on the site.
+        //
+        // Regex based on http://stackoverflow.com/a/18017805
+        navigateFallbackWhitelist: [/^[^?]*([^.?]{5}|\.html)(\?.*)?$/],
+        navigateFallbackBlacklist: [/\?(.+&)?no-cache=1$/],
+        cacheId: `gatsby-plugin-offline`,
+        // Don't cache-bust JS or CSS files, and anything in the static directory,
+        // since these files have unique URLs and their contents will never change
+        dontCacheBustURLsMatching: /(\.js$|\.css$|static\/)/,
+        runtimeCaching: [
+          {
+            // Use cacheFirst since these don't need to be revalidated (same RegExp
+            // and same reason as above)
+            urlPattern: /(\.js$|\.css$|static\/)/,
+            handler: `CacheFirst`,
+          },
+          {
+            // page-data.json files are not content hashed
+            urlPattern: /^https?:.*\page-data\/.*\/page-data\.json/,
+            handler: `NetworkFirst`,
+          },
+          {
+            // Add runtime caching of various page resources.
+            urlPattern: /\.(?:png|jpg|jpeg|webp|svg|gif|tiff|js|woff|woff2|json|css)$/,
+            handler: `staleWhileRevalidate`,
+          },
+        ],
+        skipWaiting: true,
+        clientsClaim: true,
+      }
+    }
   ],
 }
