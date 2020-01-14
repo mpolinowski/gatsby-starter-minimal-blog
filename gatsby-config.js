@@ -86,7 +86,7 @@ module.exports = {
     {
       resolve: `gatsby-plugin-offline`,
       options: {
-        precachePages: [``, `/categories/`, `/curriculum-vitae/`],
+        precachePages: [``, `/categories`, `/curriculum-vitae`],
         navigateFallback: `/offline-plugin-app-shell-fallback/index.html`,
         // Only match URLs without extensions or the query `no-cache=1`.
         // So example.com/about/ will pass but
