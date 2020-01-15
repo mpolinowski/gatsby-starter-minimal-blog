@@ -237,7 +237,7 @@ Now with everything set we can save everything and activate the MQTT adapter:
 ---
 
 
-Every MQTT topic you update will now be listed in the ioBroker Object Tree and can be used in every UI / Visualization that you are using:
+The MQTT Broker installed on your camera retains the latest status update for each MQTT topic and will push all updates into the ioBroker object tree - because we created the wildcard subscription `instar/000389888811/#` above:
 
 
 ---
@@ -247,7 +247,20 @@ Every MQTT topic you update will now be listed in the ioBroker Object Tree and c
 ---
 
 
-__Unfortunately__ I noticed that ioBroker stopped collecting MQTT topics after a while - and I have no idea why this might be. The Vis UI requires the RAW Topics to connect with our camera and they were still missing. I used the __Plus__ button on to to add these topics manually - which is a bit tedious. If you know how to let ioBroker continue to collect MQTT topics into the object tree please let me know ¯\\_(ツ)_/¯ :
+So we now know what state the camera is in and can use this in one of the [UI / Visualization](/Advanced_User/IOBroker_on_Raspberry_Pi/Visualisation/) that ioBroker offers. But the interesting part is still missing - the __Command Topics__ that allow us to switch functions on our camera on or off. The ioBroker Vis UI requires the [RAW Topics](/Advanced_User/INSTAR_MQTT_Broker/) to connect with our camera and and we can use [MQTT.fx](/Advanced_User/INSTAR_MQTT_Broker/Windows_macOS_and_LINUX_Apps/) to add them to the ioBroker object tree:
+
+
+
+
+
+<GifContainer gifUrl="/assets/gif/ioBroker_INSTAR_MQTT_Broker.gif" alt="ioBroker with your INSTAR IP Camera" />
+
+
+
+Connect [MQTT.fx](/Advanced_User/INSTAR_MQTT_Broker/Windows_macOS_and_LINUX_Apps/) with your MQTT broker and publish the topics that you want to add. For example publishing the number `1` under the topic `instar/000389888811/alarm/area1/sensitivity/raw` will set the sensitivity for [Alarm Area 1](/Web_User_Interface/1080p_Series/Alarm/Areas/) to the value `1`. Updating the topic `instar/000389888811/alarm/area1/enable/raw` will enable `1` or disable `0` the area.
+
+
+Publishing the topic will automatically add it to object tree giving us access to those command topics in the visualization of our choice:
 
 
 ---
