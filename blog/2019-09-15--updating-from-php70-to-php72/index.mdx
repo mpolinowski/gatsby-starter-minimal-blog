@@ -1,0 +1,460 @@
+---
+date: "2019-09-15"
+title: "Updating a Magento Project from PHP v7.0 to v7.2"
+categories:
+  - LINUX
+
+---
+
+![Katmandu, Nepal](./photo-kt456d_645dhfh6dgjkhg4_d.jpg)
+
+<!-- TOC -->
+
+- [Check your Environment](#check-your-environment)
+- [Install PHP v7.2](#install-php-v72)
+  - [Set the Timezone](#set-the-timezone)
+  - [Increase PHP memory limit](#increase-php-memory-limit)
+  - [Enable opcache.save_comments](#enable-opcachesavecomments)
+- [Switch to your new PHP Version](#switch-to-your-new-php-version)
+- [Checking your Code](#checking-your-code)
+  - [mcrypt](#mcrypt)
+  - [Eval option for mb_ereg_replace() and mb_eregi_replace()](#eval-option-for-mberegreplace-and-mberegireplace)
+  - [Unquoted strings](#unquoted-strings)
+  - [png2wbmp() and jpeg2wbmp()](#png2wbmp-and-jpeg2wbmp)
+  - [INTL_IDNA_VARIANT_2003 variant](#intlidnavariant2003-variant)
+  - [__autoload() method](#autoload-method)
+  - [track_errors ini setting and $php_errormsg variable](#trackerrors-ini-setting-and-phperrormsg-variable)
+  - [create_function() function](#createfunction-function)
+  - [mbstring.func_overload ini setting](#mbstringfuncoverload-ini-setting)
+  - [(unset) cast](#unset-cast)
+  - [parse_str() without a second argument](#parsestr-without-a-second-argument)
+  - [gmp_random() function](#gmprandom-function)
+  - [each() function](#each-function)
+  - [assert() with a string argument](#assert-with-a-string-argument)
+  - [$errcontext argument of error handlers](#errcontext-argument-of-error-handlers)
+  - [read_exif_data() function](#readexifdata-function)
+
+<!-- /TOC -->
+
+
+## Check your Environment
+
+First check the version of PHP you have installed:
+
+
+```bash
+php -v
+PHP 7.0.4 (cli) (built: Dec 18 2019 15:01:47) ( NTS )
+Copyright (c) 1997-2018 The PHP Group
+Zend Engine v3.2.0, Copyright (c) 1998-2018 Zend Technologies
+    with Zend OPcache v7.0.4, Copyright (c) 1999-2018, by Zend Technologies
+```
+
+
+Then check what modules you are using:
+
+
+```bash
+php -m
+[PHP Modules]
+bcmath
+calendar
+Core
+ctype
+curl
+date
+dom
+exif
+fileinfo
+filter
+ftp
+gd
+gettext
+hash
+iconv
+intl
+json
+libxml
+mbstring
+mysqli
+mysqlnd
+openssl
+pcntl
+pcre
+PDO
+pdo_mysql
+Phar
+posix
+readline
+Reflection
+session
+shmop
+SimpleXML
+soap
+sockets
+sodium
+SPL
+standard
+sysvmsg
+sysvsem
+sysvshm
+tokenizer
+wddx
+xml
+xmlreader
+xmlwriter
+xsl
+Zend OPcache
+zip
+zlib
+
+[Zend Modules]
+Zend OPcache
+```
+
+Note them down, as you will have to install all of them for the new version of PHP that you are going to install.
+
+
+## Install PHP v7.2
+
+Run below commands to upgrade the current packages to the latest version:
+
+
+```bash
+sudo apt update 
+sudo apt upgrade
+```
+
+
+Now setup PPA on Debian 10. Then import packages signing key. After that configure PPA for the PHP packages on your system:
+
+
+```bash
+sudo apt install ca-certificates apt-transport-https 
+wget -q https://packages.sury.org/php/apt.gpg -O- | sudo apt-key add -
+echo "deb https://packages.sury.org/php/ buster main" | sudo tee /etc/apt/sources.list.d/php.list
+```
+
+
+Now run the following commands to install PHP 7.2:
+
+
+```bash
+sudo apt update
+sudo apt install php7.2
+```
+
+Install the necessary PHP modules:
+
+```bash
+sudo apt install php7.2-cli php7.2-common php7.2-curl php7.2-gd php7.2-json php7.2-mbstring php7.2-mysql php7.2-xml php7.2-bcmath php7.2-gd php7.2-intl php7.2-opcache php7.2-soap
+```
+
+Now we need to configure PHP v7.2 - to find out which `php.ini` file is the one that is loaded run `php -i`:
+
+
+```bash
+php -i
+phpinfo()
+PHP Version => 7.2.26-1+0~20191218.33+debian10~1.gbpb5a34b
+
+System => Linux Magento2 4.19.0-6-amd64 #1 SMP Debian 4.19.67-2+deb10u2 (2019-11-11) x86_64
+Build Date => Dec 18 2019 15:01:47
+Server API => Command Line Interface
+Virtual Directory Support => disabled
+Configuration File (php.ini) Path => /etc/php/7.2/cli
+Loaded Configuration File => /etc/php/7.2/cli/php.ini
+Scan this dir for additional .ini files => /etc/php/7.2/cli/conf.d
+Additional .ini files parsed => /etc/php/7.2/cli/conf.d/10-mysqlnd.ini,
+```
+
+> Note: on my system there was a second configuration file in `/etc/php/7.2/apache2/php.ini`. In a later step I am going to install NGINX that is going to add more files in `/etc/php/7.2/fpm/php.ini` and  `/etc/php/7.2/cli/php.ini`. The Magento documentation recommend to do all changes to all `php.ini` files on your system.
+
+We can see that the loaded configuration file is `/etc/php/7.2/cli/php.ini`:
+
+
+```bash
+nano /etc/php/7.2/cli/php.ini
+```
+
+### Set the Timezone
+
+Edit the `php.ini` configuration file and update the [timezone](https://www.php.net/manual/en/timezones.php) value in `date.timezone` setting tag:
+
+
+```yaml
+date.timezone = "Europe/Berlin"
+```
+
+### Increase PHP memory limit
+
+Simply increase the default value to the recommended value:
+
+* Compiling code or deploying static assets: `756M`
+* Installing and updating Magento components from Magento Marketplace: `2G`
+* Testing: `~3-4G`
+
+
+```yaml
+memory_limit = 2G
+```
+
+
+### Enable opcache.save_comments
+
+Enable [opcache.save_comments](https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.save_comments) and it is recommended to enable the [PHP OpCache](http://php.net/manual/en/intro.opcache.php) for performance reasons.
+
+
+```yaml
+[opcache]
+; Determines if Zend OPCache is enabled
+opcache.save_comments=1
+opcache.enable=1
+```
+
+
+## Switch to your new PHP Version
+
+
+To set PHP 7.2 as your active PHP version for CLI and Apache2 disable Apache2 modules for all other installed PHP versions and configure CLI using the update-alternatives command. Run the following commands to make changes.
+
+1. Apache:
+
+
+```bash
+sudo a2dismod php5.6 php7.1 php7.0   ## Shows error for modules not installed 
+sudo a2enmod php7.2
+sudo service apache2 restart
+```
+
+
+2. CLI:
+
+
+```bash
+sudo update-alternatives --set php /usr/bin/php7.2
+sudo update-alternatives --set phar /usr/bin/phar7.2
+sudo update-alternatives --set phar.phar /usr/bin/phar.phar7.2
+sudo update-alternatives --set phpize /usr/bin/phpize7.2
+sudo update-alternatives --set php-config /usr/bin/php-config7.2
+```
+
+Running a PHP version check again should show you that you are now using the updated version:
+
+
+```bash
+php -v
+PHP 7.2.26-1+0~20191218.33+debian10~1.gbpb5a34b (cli) (built: Dec 18 2019 15:01:47) ( NTS )
+Copyright (c) 1997-2018 The PHP Group
+Zend Engine v3.2.0, Copyright (c) 1998-2018 Zend Technologies
+    with Zend OPcache v7.2.26-1+0~20191218.33+debian10~1.gbpb5a34b, Copyright (c) 1999-2018, by Zend Technologies
+```
+
+
+3. NGINX: 
+
+Go to your NGINX server configuration, e.g.:
+
+
+```bash
+nano /etc/nginx/sites-available/default
+```
+ 
+ 
+Change the FastCGI backend to use the new PHP-FPM socket, save and exit the file:
+
+
+```bash
+location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+}
+```
+
+
+Run the configuration test and restart the web server:
+
+
+```bash
+nginx -t
+sudo service nginx restart
+```
+
+## Checking your Code
+
+### mcrypt
+
+The [mcrypt extension has been deprecated](https://www.php.net/manual/en/migration71.deprecated.php) in favour of OpenSSL, where it will be removed from the core and into PECL in PHP 7.2. Make sure that your code does not use something like:
+
+
+```php
+$initVector = mcrypt_create_iv(mcrypt_get_iv_size(SAFETY_CIPHER, SAFETY_MODE), MCRYPT_RAND);
+$encrypted = mcrypt_encrypt(SAFETY_CIPHER, $key, $password, SAFETY_MODE, $initVector);
+echo base64_encode($initVector) . ENCRYPTION_DIVIDER_TOKEN . base64_encode($encrypted) . '<br/>';
+echo mcrypt_decrypt(SAFETY_CIPHER, $key, $encrypted, SAFETY_MODE, $initVector) . '<br/>';
+```
+
+
+### Eval option for mb_ereg_replace() and mb_eregi_replace()
+
+The [e pattern modifier has been deprecated](https://www.php.net/manual/en/migration71.deprecated.php) for the [mb_ereg_replace()](https://www.php.net/manual/en/function.mb-ereg-replace.php) and [mb_eregi_replace()](https://www.php.net/manual/en/function.mb-eregi-replace.php) functions.
+
+
+```php
+mb_eregi_replace ( string $pattern , string $replace , string $string [, string $option = "msri" ] ) : string
+```
+
+
+```php
+mb_ereg_replace ( string $pattern , string $replacement , string $string [, string $option = "msr" ] ) : string
+```
+
+
+### Unquoted strings
+
+[Unquoted strings](https://www.php.net/manual/en/migration72.deprecated.php) that are non-existent global constants are taken to be strings of themselves. This behaviour will now emit an E_WARNING:
+
+
+```php
+<?php
+
+var_dump(NONEXISTENT);
+
+/* Output:
+Warning: Use of undefined constant NONEXISTENT - assumed 'NONEXISTENT' (this will throw an Error in a future version of PHP) in %s on line %d
+string(11) "NONEXISTENT"
+*/
+```
+
+
+### png2wbmp() and jpeg2wbmp()
+
+The [png2wbmp()](https://www.php.net/manual/en/function.png2wbmp.php) and [jpeg2wbmp()](https://www.php.net/manual/en/function.jpeg2wbmp.php) functions from the [GD extension have now been deprecated](https://www.php.net/manual/en/migration72.deprecated.php#migration72.deprecated.png2wbmp-jpeg2wbmp) and will be removed in the next major version of PHP.
+
+
+```php
+png2wbmp ( string $pngname , string $wbmpname , int $dest_height , int $dest_width , int $threshold ) : bool
+```
+
+```php
+jpeg2wbmp ( string $jpegname , string $wbmpname , int $dest_height , int $dest_width , int $threshold ) : bool
+```
+
+
+### INTL_IDNA_VARIANT_2003 variant 
+
+The Intl extension has deprecated the INTL_IDNA_VARIANT_2003 variant, which is currently being used as the default for [idn_to_ascii()](https://www.php.net/manual/en/function.idn-to-ascii.php) and [idn_to_utf8()](https://www.php.net/manual/en/function.idn-to-utf8.php). PHP 7.4 will see these defaults changed to INTL_IDNA_VARIANT_UTS46, and the [next major version of PHP will remove INTL_IDNA_VARIANT_2003 altogether](https://www.php.net/manual/en/migration72.deprecated.php#migration72.deprecated.png2wbmp-jpeg2wbmp).
+
+
+```php
+idn_to_ascii ( string $domain [, int $options = IDNA_DEFAULT [, int $variant = INTL_IDNA_VARIANT_UTS46 [, array &$idna_info ]]] ) : string
+```
+
+
+```php
+idn_to_utf8 ( string $domain [, int $options = IDNA_DEFAULT [, int $variant = INTL_IDNA_VARIANT_UTS46 [, array &$idna_info ]]] ) : string
+```
+
+
+### __autoload() method
+
+The [__autoload() method has been deprecated](https://www.php.net/manual/en/function.autoload.php):
+
+
+```php
+__autoload ( string $class ) : void
+```
+
+
+### track_errors ini setting and $php_errormsg variable
+
+When the track_errors ini setting is enabled, a $php_errormsg variable is created in the local scope when a non-fatal error occurs. Given that the preferred way of retrieving such error information is by using [error_get_last()](https://www.php.net/manual/en/function.error-get-last.php), [this feature has been deprecated](https://www.php.net/manual/en/function.error-get-last.php).
+
+
+
+### create_function() function
+
+Given the security issues of this function, this dated function [has now been deprecated](https://www.php.net/manual/en/migration72.deprecated.php#migration72.deprecated.create_function-function). The preferred alternative is to use anonymous functions.
+
+
+```php
+create_function ( string $args , string $code ) : string
+```
+
+
+### mbstring.func_overload ini setting
+
+Given the interoperability problems of string-based functions being used in environments with this setting enabled, it has now been deprecated.
+
+
+### (unset) cast
+
+Casting any expression to this type will always result in NULL, and so this superfluous casting type has now been deprecated.
+
+
+### parse_str() without a second argument
+
+Without the second argument to [parse_str()](https://www.php.net/manual/en/function.parse-str.php), the query string parameters would populate the local symbol table. Given the security implications of this, using parse_str() without a second argument [has now been deprecated](https://www.php.net/manual/en/migration72.deprecated.php#migration72.deprecated.parse_str-no-second-arg). The function should always be used with two arguments, as the second argument causes the query string to be parsed into an array:
+
+```php
+parse_str ( string $encoded_string [, array &$result ] ) : void
+```
+
+
+### gmp_random() function
+
+This [function generates a random number](https://www.php.net/manual/en/function.gmp-random.php) based upon a range that is calculated by an unexposed, platform-specific limb size. Because of this, [the function has now been deprecated](https://www.php.net/manual/en/migration72.deprecated.php#migration72.deprecated.gmp_random-function). The preferred way of generating a random number using the GMP extension is by [gmp_random_bits()](https://www.php.net/manual/en/function.gmp-random-bits.php) and [gmp_random_range()](https://www.php.net/manual/en/function.gmp-random-range.php):
+
+
+```php
+gmp_random ([ int $limiter = 20 ] ) : GMP
+```
+
+```php
+gmp_random_range ( GMP $min , GMP $max ) : GMP
+```
+
+```php
+gmp_random_bits ( int $bits ) : GMP
+```
+
+
+### each() function
+
+[This function](https://www.php.net/manual/en/function.each.php) is far slower at iteration than a normal [foreach()](https://www.php.net/manual/en/control-structures.foreach.php), and causes implementation issues for some language changes. It has therefore [been deprecated](https://www.php.net/manual/en/migration72.deprecated.php#migration72.deprecated.each-function).
+
+
+```php
+each ( array &$array ) : array
+```
+
+<!-- Affected pages:
+\template_63588_PyBvvUTffPT11855oAQQ\copy2server\app\code\TemplateMonster\FilmSlider\Block\Adminhtml\Slider\Edit.php
+\template_63588_PyBvvUTffPT11855oAQQ\copy2server\app\code\TemplateMonster\FilmSlider\Block\Adminhtml\SliderItem\Edit.php
+\template_63588_PyBvvUTffPT11855oAQQ\copy2server\app\code\TemplateMonster\GoogleMap\view\adminhtml\templates\custom-validation.phtml
+\template_63588_PyBvvUTffPT11855oAQQ\copy2server\app\code\TemplateMonster\LayoutSwitcher\view\frontend\templates\switcher.phtml -->
+
+
+### assert() with a string argument
+
+Using [assert()](https://www.php.net/manual/en/function.assert.php) with a string argument required the string to be [eval()](https://www.php.net/manual/en/function.eval.php)'ed. Given the potential for remote code execution, using assert() with a string argument has now been [deprecated in favour of using boolean expressions](https://www.php.net/manual/en/migration72.deprecated.php#migration72.deprecated.errcontext-arg-of-error-handlers).
+
+
+```php
+assert ( mixed $assertion [, Throwable $exception ] ) : bool
+```
+
+
+```php
+eval ( string $code ) : mixed
+```
+
+
+### $errcontext argument of error handlers
+
+The $errcontext argument contains all local variables of the error site. Given its rare usage, and the problems it causes with internal optimisations, [it has now been deprecated](https://www.php.net/manual/en/migration72.deprecated.php#migration72.deprecated.errcontext-arg-of-error-handlers).
+
+
+### read_exif_data() function
+
+The [read_exif_data()](https://www.php.net/manual/en/function.read-exif-data.php) alias [has been deprecated](https://www.php.net/manual/en/migration72.deprecated.php#migration72.deprecated.read_exif_data-function). The [exif_read_data()](https://www.php.net/manual/en/function.exif-read-data.php) function should be used instead.
