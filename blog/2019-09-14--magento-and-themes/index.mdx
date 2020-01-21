@@ -12,7 +12,8 @@ categories:
 
 - [Download and Unzip your Theme](#download-and-unzip-your-theme)
 - [Theme Installation](#theme-installation)
-- [Lot's of Problems](#lots-of-problems)
+- [Importing Demo SQL Data](#importing-demo-sql-data)
+- [Lot's of Problems on the way...](#lots-of-problems-on-the-way)
   - [How to clear out a manually installed theme ?](#how-to-clear-out-a-manually-installed-theme)
   - [Error Collection](#error-collection)
 
@@ -81,12 +82,67 @@ On the Admin sidebar, __Content__ > Design > __Configuration__ > __Select your c
 
 ![Magento Theme Installation](./Magento_Themes_Installation_05.png)
 
+## Importing Demo SQL Data
+
+To use the sample SQL DATA that comes with your template, you have to start with a blank database. First create a backup of your database to be able to roll it back later:
+
+
+```bash
+mysqldump -u username -p database_name > file.sql
+```
+
+
+Delete all tables from the database - or delete the db and recreate. Then import the sample data from your template.
+
+Bow download a fresh version of Magento and run the init script - make sure that `--db-name` is set to the database you just prepared above:
+
+
+```bash
+bin/magento setup:install \
+--base-url=http://mysite.dev \
+--db-host=localhost \
+--db-name=magento \
+--db-user=magento \
+--db-password=magento \
+--admin-firstname=admin \
+--admin-lastname=admin \
+--admin-email=admin@admin.com \
+--admin-user=admin \
+--admin-password=admin123 \
+--language=en_US \
+--currency=USD \
+--timezone=America/Chicago \
+--use-rewrites=1
+```
+
+
+Now go through the regular setup through the Magento Admin panel. The Theme should already be selected and ready to be configured.
+
+
+If your run into the following issue when trying to load the frontend:
+
+
+```bash
+1 exception(s):
+Exception #0 (Magento\Framework\Exception\LocalizedException): Unable to find a physical ancestor for a theme 'Magetigue'.
+```
+
+
+![Magento2](./Magento_Themes_Installation_10.png)
+
+
+Make sure that `type` for the theme is set to `0`:
+
+
+```sql
+SELECT * FROM theme;
+UPDATE theme SET type = 0 WHERE theme_id = 4;
+```
 
 
 
 
-
-## Lot's of Problems
+## Lot's of Problems on the way...
 
 The original theme that I was using did not work... all just went downhill... Error message by error message.
 
@@ -126,7 +182,9 @@ The template was stored under `theme_id=4` in the theme table inside the Magento
 
 3. Flush cache
 
-Flush your cache `php bin/magento cache:flush` 
+```bash
+php bin/magento cache:flush
+```
 
 
 4. Recompile
