@@ -3,6 +3,7 @@ date: "2019-09-13"
 title: "Magento 2 and Varnish 5"
 categories:
   - LINUX
+  - Magento
 
 ---
 
