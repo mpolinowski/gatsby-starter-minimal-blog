@@ -76,6 +76,9 @@ root@5582e69da175:/opt/iobroker# find / -name iobroker
 podman stop iobroker
 podman rm iobroker
 podman run -p 8081:8081 \
+  -p 8082:8082 \
+  -p 8087:8087 \
+  -p 1883:1883 \
   --name iobroker \
    -v /opt/iobroker:/opt/iobroker \
    -v /opt/iobroker/home:/home/iobroker \
@@ -83,6 +86,8 @@ podman run -p 8081:8081 \
   --restart="always" \
   buanet/iobroker:latest
 ```
+
+> Port `8082` added for ioBroker visualization, port `8087` for the REST API and port `1883` for MQTT.
 
 
 Make sure that the folders `/opt/iobroker/home` and `/opt/iobroker` exist on your host system (`chmod -R 777 /opt/iobroker` or `755` to give Podman all necessary permissions and `chcon -Rt svirt_sandbox_file_t /opt/motioneye`).

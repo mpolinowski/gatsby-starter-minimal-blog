@@ -164,8 +164,8 @@ podman stop motioneye
 podman rm motioneye
 podman run --name="motioneye" \
     -p 8765:8765 \
+    -p 8081:8081 \
     -p 8082:8082 \
-    -p 8083:8083 \
     --hostname="motioneye" \
     -v /etc/localtime:/etc/localtime:ro \
     -v /opt/motioneye:/etc/motioneye \
@@ -177,4 +177,21 @@ podman run --name="motioneye" \
 ```
 
 
-You can access the ioBroker 
+
+Camera re-stream ports collided with the default ports used by ioBroker =>
+
+
+```bash
+podman run --name="motioneye" \
+    -p 8765:8765 \
+    -p 7777:7777 \
+    -p 7778:7778 \
+    --hostname="motioneye" \
+    -v /etc/localtime:/etc/localtime:ro \
+    -v /opt/motioneye:/etc/motioneye \
+    -v /opt/motioneye/lib:/var/lib/motioneye \
+    --security-opt label=disable \
+    --restart="always" \
+    --detach=true \
+    ccrisan/motioneye:master-amd64
+```
