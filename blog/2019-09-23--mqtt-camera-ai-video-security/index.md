@@ -1,5 +1,5 @@
 ---
-date: "2019-09-22"
+date: "2019-09-23"
 title: "MQTT Camera AI Enhanced Security"
 categories:
   - MQTT
@@ -9,7 +9,7 @@ categories:
 
 ---
 
-<!-- ![Pokhara, Nepal](./photo-kt443t6d_64hdh43hfh6dgjdfhg4_d.jpg) -->
+![Central, Hong Kong](./photo-kt443t6d_64hdh43hfh6dgjdfhg4_d.jpg)
 
 
 

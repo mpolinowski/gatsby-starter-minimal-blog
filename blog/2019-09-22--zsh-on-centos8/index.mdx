@@ -1,0 +1,129 @@
+---
+date: "2019-09-22"
+title: "Installing Oh-My-Zsh on CentOS8"
+categories:
+  - LINUX
+
+---
+
+![Central, Hong Kong](./photo-kt443t6d_64hdh43hfh6dgjdfhg4_d.jpg)
+
+
+
+<!-- TOC -->
+
+- [Install ZSH](#install-zsh)
+- [Make it as Default Shell](#make-it-as-default-shell)
+  - [If chsh not found](#if-chsh-not-found)
+  - [Verify](#verify)
+- [Install Oh-My-Zsh Framework](#install-oh-my-zsh-framework)
+  - [Change Oh-My-Zsh Themes](#change-oh-my-zsh-themes)
+  - [Install external Themes](#install-external-themes)
+
+<!-- /TOC -->
+
+In order for [Oh-My-Zsh](https://ohmyz.sh) to work on the system ,`zsh` need to be installed.
+
+
+## Install ZSH
+
+
+```bash
+sudo yum update && sudo yum -y install zsh
+```
+
+
+## Make it as Default Shell
+
+
+```bash
+chsh -s (which zsh) root
+```
+
+### If chsh not found
+
+
+```bash
+chsh -s /bin/zsh root
+-bash: chsh: command not found
+```
+
+```bash
+yum install util-linux-user
+```
+
+
+### Verify
+
+Logout from the root user and login again to verify the shell
+
+
+```bash
+[root@CentOS8 ~]# su
+[root@CentOS8]~# echo $SHELL
+/bin/zsh
+```
+
+
+## Install Oh-My-Zsh Framework
+
+Once Z Shell is installed and confirmed install the Framework from the GIT
+
+
+```bash
+yum install wget git
+wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh
+```
+
+
+Oh-My-Zsh will be installed in the home directory `~/.oh-my-zsh`.Copy the zshrc.zsh-template config file to the home directory .zshrc and apply the config:
+
+
+```bash
+cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc
+source ~/.zshrc
+```
+
+
+### Change Oh-My-Zsh Themes
+
+
+Oh-My-Zsh framework [provides large number of themes](https://github.com/ohmyzsh/ohmyzsh/wiki/Themes). You can change the default themes by editing the config file .zshrc which will be under `./oh-my-zsh/themes/`
+
+Set ZSH_THEME to the name of the theme in your ~/.zshrc and run `su` to activate it:
+
+
+```bash
+# If you come from bash you might have to change your $PATH.
+# export PATH=$HOME/bin:/usr/local/bin:$PATH
+
+# Path to your oh-my-zsh installation.
+export ZSH=$HOME/.oh-my-zsh
+
+# Set name of the theme to load --- if set to "random", it will
+# load a random theme each time oh-my-zsh is loaded, in which case,
+# to know which specific one was loaded, run: echo $RANDOM_THEME
+# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
+ZSH_THEME="agnoster"
+
+...
+```
+
+
+### Install external Themes
+
+see [external Themes](https://github.com/ohmyzsh/ohmyzsh/wiki/External-themes).
+
+__Example__: [PowerLevel10k](https://github.com/romkatv/powerlevel10k#oh-my-zsh)
+
+
+```bash
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $ZSH_CUSTOM/themes/powerlevel10k
+```
+
+Set `ZSH_THEME="powerlevel10k/powerlevel10k"` in `~/.zshrc`.
+
+
+```bash
+su
+```
