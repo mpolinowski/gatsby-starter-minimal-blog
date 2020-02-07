@@ -85,7 +85,7 @@ upstream fastcgi_backend {
 server {
 
   listen 8080 default_server;
-  server_name static.206.80.47.78.clients.your-server.de;
+  server_name your-server.de;
   set $MAGE_ROOT /var/www/html/magento;
   include /var/www/html/magento/nginx.conf.sample;
 }
