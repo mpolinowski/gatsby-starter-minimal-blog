@@ -17,6 +17,7 @@ categories:
 - [Modify default.vcl](#modify-defaultvcl)
 - [Configure Magento to use Varnish](#configure-magento-to-use-varnish)
 - [Export a Varnish Configuration File](#export-a-varnish-configuration-file)
+- [The Varnishing of the TopMenu](#the-varnishing-of-the-topmenu)
 
 <!-- /TOC -->
 
@@ -413,3 +414,63 @@ service nginx restart
 ```bash
 curl -I -v --location-trusted 'http://my.domain.com'
 ```
+
+
+## The Varnishing of the TopMenu
+
+After switching to Varnish I noticed that my _topmenu_ module was no longer loading. Checking the page source showed me that the [Edge Side Include](https://varnish-cache.org/docs/6.0/users-guide/esi.html) was failing:
+
+
+![Varnish 6 on Magento 2](./Varnish_ESI_Problems_01.png)
+
+
+
+The [problem in my case](https://github.com/magento/magento2/issues/3421) was a `ttl="3600"` parameter given in the menu component that has to be deleted:
+
+
+```xml
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="div.sidebar.main">
+            <block class="TemplateMonster\Megamenu\Block\Html\Topmenu"
+                   name="catalog.sidebarnav"
+                   template="TemplateMonster_Megamenu::html/topmenu.phtml"
+                   ifconfig="megamenu/config/megamenu_general_show_left"
+                   before="-"
+                   ttl="3600" />
+        </referenceContainer>
+        <referenceBlock name="catalog.topnav" template="TemplateMonster_Megamenu::html/topmenu.phtml" />
+    </body>
+```
+
+
+I found this block in `themeXXX\app\code\TemplateMonster\Megamenu\view\frontend\layout\default.xml` in the template source. And on the server inside the magento installation dir `/vendor/magento/module-theme/view/frontend/layout/default.xml`.
+
+
+There might also be issues with [HTTPS on the backend side](https://support.magento.com/hc/en-us/articles/360028757791-Top-navigation-panel-does-not-load-on-storefront):
+
+
+
+```bash
+nano /etc/default/varnish
+```
+
+
+In the DAEMON_OPTS variable, add -p feature=+esi_ignore_https,  -p  feature=+esi_ignore_other_elements, -p feature=+esi_disable_xml_check. This would look like:
+
+
+
+```js
+DAEMON_OPTS="-a :80 \
+             -p feature=+esi_ignore_other_elements \
+             -p feature=+esi_disable_xml_check \
+             -p feature=+esi_ignore_https \
+             -T localhost:6082 \
+             -f /etc/varnish/varnish.vcl \
+             -S /etc/varnish/secret \
+             -s malloc,256m"
+```
+
+
+When you change this, you need to run `service varnish restart` for the changes to take effect.

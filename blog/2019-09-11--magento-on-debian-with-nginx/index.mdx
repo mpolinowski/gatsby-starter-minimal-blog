@@ -13,7 +13,7 @@ categories:
 
 <!-- TOC -->
 
-- [Install PHP 7.2](#install-php-72)
+- [Install PHP 7.3](#install-php-73)
   - [Set the Timezone](#set-the-timezone)
   - [Increase PHP memory limit](#increase-php-memory-limit)
   - [Disable asp_tags](#disable-asptags)
@@ -39,7 +39,7 @@ categories:
 
 
 
-## Install PHP 7.2
+## Install PHP 7.3
 
 Run below commands to upgrade the current packages to the latest version:
 
@@ -60,49 +60,53 @@ echo "deb https://packages.sury.org/php/ buster main" | sudo tee /etc/apt/source
 ```
 
 
-Now run the following commands to install PHP 7.2:
+Now run the following commands to install PHP 7.3:
 
 
 ```bash
 sudo apt update
-sudo apt install php7.2
+sudo apt install php7.3
 ```
 
 Install the necessary PHP modules:
 
-```bash
+<!-- ```bash
 sudo apt install php7.2-cli php7.2-common php7.2-curl php7.2-gd php7.2-json php7.2-mbstring php7.2-mysql php7.2-xml php7.2-bcmath php7.2-gd php7.2-intl php7.2-opcache php7.2-soap php7.2-imagick
-```
+``` -->
 
 ```bash
-sudo apt install php7.0-cli php7.0-common php7.0-curl php7.0-gd php7.0-json php7.0-mbstring php7.0-mysql php7.0-xml php7.0-bcmath php7.0-gd php7.0-intl php7.0-opcache php7.0-soap php-imagick php7.0-mcrypt php-mhash libapache2-mod-php7.0
+sudo apt install php7.3-cli php7.3-common php7.3-curl php7.3-gd php7.3-json php7.3-mbstring php7.3-mysql php7.3-xml php7.3-bcmath php7.3-gd php7.3-intl php7.3-opcache php7.3-soap php7.3-imagick
 ```
 
-Now we need to configure PHP v7.2 - to find out which `php.ini` file is the one that is loaded run `php -i`:
+<!-- ```bash
+sudo apt install php7.0-cli php7.0-common php7.0-curl php7.0-gd php7.0-json php7.0-mbstring php7.0-mysql php7.0-xml php7.0-bcmath php7.0-gd php7.0-intl php7.0-opcache php7.0-soap php-imagick php7.0-mcrypt php-mhash libapache2-mod-php7.0
+``` -->
+
+Now we need to configure PHP v7.3 - to find out which `php.ini` file is the one that is loaded run `php -i`:
 
 
 ```bash
 php -i
 phpinfo()
-PHP Version => 7.2.26-1+0~20191218.33+debian10~1.gbpb5a34b
+PHP Version => 7.3.26-1+0~20191218.33+debian10~1.gbpb5a34b
 
 System => Linux Magento2 4.19.0-6-amd64 #1 SMP Debian 4.19.67-2+deb10u2 (2019-11-11) x86_64
 Build Date => Dec 18 2019 15:01:47
 Server API => Command Line Interface
 Virtual Directory Support => disabled
-Configuration File (php.ini) Path => /etc/php/7.2/cli
-Loaded Configuration File => /etc/php/7.2/cli/php.ini
-Scan this dir for additional .ini files => /etc/php/7.2/cli/conf.d
-Additional .ini files parsed => /etc/php/7.2/cli/conf.d/10-mysqlnd.ini,
+Configuration File (php.ini) Path => /etc/php/7.3/cli
+Loaded Configuration File => /etc/php/7.3/cli/php.ini
+Scan this dir for additional .ini files => /etc/php/7.3/cli/conf.d
+Additional .ini files parsed => /etc/php/7.3/cli/conf.d/10-mysqlnd.ini,
 ```
 
-> Note: on my system there was a second configuration file in `/etc/php/7.2/apache2/php.ini`. In a later step I am going to install NGINX that is going to add more files in `/etc/php/7.2/fpm/php.ini` and  `/etc/php/7.2/cli/php.ini`. The Magento documentation recommend to do all changes to all `php.ini` files on your system.
+> Note: on my system there was a second configuration file in `/etc/php/7.3/apache2/php.ini`. In a later step I am going to install NGINX that is going to add more files in `/etc/php/7.3/fpm/php.ini` and  `/etc/php/7.3/cli/php.ini`. The Magento documentation recommend to do all changes to all `php.ini` files on your system.
 
-We can see that the loaded configuration file is `/etc/php/7.2/cli/php.ini`:
+We can see that the loaded configuration file is `/etc/php/7.3/cli/php.ini`:
 
 
 ```bash
-nano /etc/php/7.2/cli/php.ini
+nano /etc/php/7.3/cli/php.ini
 ```
 
 ### Set the Timezone
@@ -160,8 +164,13 @@ apt -y install nginx
 The `php-fpm` extension is needed for NGINX in addition to the modules we already installed earlier:
 
 
-```bash
+<!-- ```bash
 apt -y install php7.2-fpm php7.2-cli
+``` -->
+
+
+```bash
+apt -y install php7.3-fpm php7.3-cli
 ```
 
 
@@ -169,9 +178,14 @@ apt -y install php7.2-fpm php7.2-cli
 
 Open the following two, new `php.ini` files in an editor:
 
-```bash
+<!-- ```bash
 nano /etc/php/7.2/fpm/php.ini
 nano /etc/php/7.2/cli/php.ini
+``` -->
+
+```bash
+nano /etc/php/7.3/fpm/php.ini
+nano /etc/php/7.3/cli/php.ini
 ```
 
 And edit both files to match the following lines:
@@ -187,7 +201,7 @@ Now restart all services:
 
 
 ```bash
-systemctl restart php7.2-fpm
+systemctl restart php7.3-fpm
 service nginx restart
 ```
 
@@ -337,7 +351,7 @@ When prompted, enter your Magento authentication keys. Public and private keys a
 __ERROR Message__: The zip extension and unzip command are both missing, skipping. Your command-line PHP is using multiple ini files. Run `php --ini` to show them.
 
 
-Install `apt install zip unzip php7.2-zip` - but I can only see the cli `php.ini` when I run `php -i`?
+Install `apt install zip unzip php7.3-zip` - but I can only see the cli `php.ini` when I run `php -i`?
 
 
 ### Set file permissions
@@ -405,7 +419,7 @@ nano /etc/nginx/sites-available/magento.conf
 
 ```bash
 upstream fastcgi_backend {
-  server  unix:/run/php/php7.2-fpm.sock;
+  server  unix:/run/php/php7.3-fpm.sock;
 }
 
 server {
