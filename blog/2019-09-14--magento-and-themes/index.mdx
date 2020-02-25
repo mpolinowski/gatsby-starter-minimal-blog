@@ -192,6 +192,7 @@ php bin/magento cache:flush
 
 
 ```bash
+rm -rf generated/* var/* cache/*
 php bin/magento setup:di:compile
 php bin/magento setup:static-content:deploy -f
 ```
@@ -221,9 +222,11 @@ A quick re-compile, deploy and flush later everything was up and running...
 
 
 ```bash
+rm -rf generated/* var/* cache/*
 php bin/magento setup:di:compile
 php bin/magento setup:static-content:deploy -f
 php bin/magento cache:flush
+chown -R www-data:www-data .
 ```
 
 
