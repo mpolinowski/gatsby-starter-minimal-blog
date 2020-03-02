@@ -1,0 +1,122 @@
+---
+date: "2019-09-27"
+title: "Home Assistant, OpenHAB, Node-RED on CentOS8 with Podman"
+categories:
+  - LINUX
+  - Smarthome
+  - IoT
+  - Docker
+
+---
+
+![Siem Reap, Cambodia](./photo-kt443t6d_64hdh43hfh6dgjdfhg4_d.jpg)
+
+
+
+<!-- TOC -->
+
+- [Installation through Podman on CentOS8](#installation-through-podman-on-centos8)
+    - [Home Assistant](#home-assistant)
+    - [Node-RED](#node-red)
+    - [OpenHAB](#openhab)
+
+<!-- /TOC -->
+
+
+## Installation through Podman on CentOS8
+
+
+### Home Assistant
+
+
+```bash
+podman pull homeassistant/home-assistant:stable
+```
+
+
+```bash
+mkdir /opt/homeassistant
+mkdir /opt/homeassistant/config
+chmod -R 775 /opt/homeassistant
+```
+
+
+```bash
+podman run -d --privileged -p 8123:8123 --name="home-assistant" -e "TZ=Europe/Berlin" -v /opt/homeassistant/config:/config --net=host homeassistant/home-assistant:stable
+```
+
+
+There seems to be an issue with Podman - or the way I am using it. I have to run the container `privileged` to be able to write to the volume. Google did not help me solve this "issue", yet.
+
+
+```bash
+podman start home-assistant
+podman stop home-assistant
+```
+
+
+### Node-RED
+
+
+```bash
+podman pull nodered/node-red
+```
+
+
+```bash
+mkdir /opt/nodered
+mkdir /opt/nodered/data
+chmod -R 775 /opt/nodered
+```
+
+
+```bash
+podman run -d --privileged -p 1880:1880 -v /opt/nodered/data:/data --name nodered nodered/node-red
+```
+
+
+```bash
+podman start nodered
+podman stop nodered
+```
+
+
+### OpenHAB
+
+
+```bash
+groupadd -g 9001 openhab
+useradd -g 9001 openhab
+usermod -a -G openhab myownuser
+```
+
+
+```bash
+mkdir /opt/openhab
+mkdir /opt/openhab/openhab_addons
+mkdir /opt/openhab/openhab_conf
+mkdir /opt/openhab/openhab_userdata
+chmod -R 775 /opt/openhab
+```
+
+
+```bash
+podman run \
+        --name openhab \
+        --net=host \
+         -p 8080:8080 \
+        --privileged \
+        -v /etc/localtime:/etc/localtime:ro \
+        -v /opt/openhab/openhab_addons:/openhab/addons \
+        -v /opt/openhab/openhab_conf:/openhab/conf \
+        -v /opt/openhab/openhab_userdata:/openhab/userdata \
+        -d \
+        --restart=always \
+        openhab/openhab:latest
+```
+
+
+```bash
+podman start openhab
+podman stop openhab
+```

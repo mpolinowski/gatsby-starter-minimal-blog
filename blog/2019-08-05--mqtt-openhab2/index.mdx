@@ -191,7 +191,7 @@ I am going to use an __ON/Off Switch__. The MQTT topic to go to switch the first
 ---
 
 
-In the expanded settings we have to set up a transformation for the incoming topic `JSONPATH:$.val`. This will extract the value from the incoming message - `{"val": "1"}` will become `1` - to set the state of the switch to 1 or 0. For the Quality-of-Service `QoS` choose __At-least-once__. Now click on Save to continue.
+In the expanded settings we have to set up the Quality-of-Service `QoS` to deliver every update __At-least-once__. Now click on Save to continue.
 
 
 By clicking on the blue icon in front of the created channel we are now able to link it to a switch in the __OpenHAB PaperUI__:
