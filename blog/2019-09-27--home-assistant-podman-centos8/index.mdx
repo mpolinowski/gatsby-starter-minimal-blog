@@ -42,7 +42,7 @@ chmod -R 775 /opt/homeassistant
 
 
 ```bash
-podman run -d --privileged -p 8123:8123 --name="home-assistant" -e "TZ=Europe/Berlin" -v /opt/homeassistant/config:/config --net=host homeassistant/home-assistant:stable
+podman run -d --rm --privileged --net=host --name="home-assistant" -e "TZ=Europe/Berlin" -v /opt/homeassistant/config:/config --net=host homeassistant/home-assistant:stable
 ```
 
 
@@ -71,7 +71,7 @@ chmod -R 775 /opt/nodered
 
 
 ```bash
-podman run -d --privileged -p 1880:1880 -v /opt/nodered/data:/data --name nodered nodered/node-red
+podman run -d --rm --privileged --net=host -v /opt/nodered/data:/data --name nodered nodered/node-red
 ```
 
 
@@ -79,6 +79,39 @@ podman run -d --privileged -p 1880:1880 -v /opt/nodered/data:/data --name nodere
 podman start nodered
 podman stop nodered
 ```
+
+
+#### Theming
+
+```bash
+cd /opt/nodered/data
+npm install @node-red-contrib-themes/midnight-red
+```
+
+Add the following to the editorTheme section of your `settings.js`:
+
+
+```js
+editorTheme: {
+    projects: {
+            // To enable the Projects feature, set this value to true
+            enabled: false
+    }
+}
+```
+
+Change to ->
+
+```js
+// Customising the editor
+    editorTheme: {
+        page: {
+            css: "/opt/nodered/data/node_modules/@node-red-contrib-themes/midnight-red/theme.css"
+        }
+    }
+```
+
+
 
 
 ### OpenHAB
@@ -104,8 +137,8 @@ chmod -R 775 /opt/openhab
 podman run \
         --name openhab \
         --net=host \
-         -p 8080:8080 \
         --privileged \
+         --rm \
         -v /etc/localtime:/etc/localtime:ro \
         -v /opt/openhab/openhab_addons:/openhab/addons \
         -v /opt/openhab/openhab_conf:/openhab/conf \

@@ -39,3 +39,19 @@ sudo docker run hello-world
 
 
 ![Offline Docker Images](./Offline_docker_Images_02.png)
+
+
+## How to use offline Docker Images on CentOS8/Podman
+
+The `load` command is identical in Podman. But I keep having the problem that with the `podman run` command the system want's to download the latest version of the image first before running it (I think I should have pulled a specific version instead of using the `:latest`).
+
+
+```bash
+podman load -i hello-world_image.docker
+podman run hello-world
+podman images
+podman container commit hello IMAGE:ID
+podman run hello
+```
+
+

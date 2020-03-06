@@ -314,9 +314,10 @@ Here we added all Pan-Tilt, Preset Position and the Manual Alarm Trigger command
 
 ## Automations
 
-Now that we are able to manually trigger functions on our camera we now want to find a way to automate those processes through Home Assistant. To do this we will first add a prototype service to our `services.yaml` file. This service should be able to receive a __MQTT Topic__ (`target`) and __MQTT Payload__ (`message`) from an automation in the `automations.yaml` file. This can be done by adding the following lines into the automation file:
+Now that we are able to manually trigger functions on our camera we now want to find a way to automate those processes through Home Assistant. To do this we will first add a prototype service to our `scripts.yaml` file. This service should be able to receive a __MQTT Topic__ (`target`) and __MQTT Payload__ (`message`) from an automation in the `automations.yaml` file. This can be done by adding the following lines into the script file:
 
 
+`scripts.yaml`
 
 ```yaml
 # MQTT Publish Service
