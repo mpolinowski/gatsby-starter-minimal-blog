@@ -1,0 +1,422 @@
+---
+date: "2019-12-01"
+title: "Podman Homebridge to MQTT"
+categories:
+  - LINUX
+  - Smarthome
+  - IoT
+  - Docker
+
+---
+
+![Sapporo, Japan](./photo-kt443t6d_64hdh43hfh6dgjdfhg4_d.jpg)
+
+
+
+<!-- TOC -->
+
+- [Building the Docker Image](#building-the-docker-image)
+    - [Preparing Ubuntu](#preparing-ubuntu)
+    - [Installing FFMPEG](#installing-ffmpeg)
+    - [Installing NodeJS 12 LTS](#installing-nodejs-12-lts)
+    - [Installing Homebridge](#installing-homebridge)
+    - [Adding your Camera](#adding-your-camera)
+    - [Adding MQTT Button](#adding-mqtt-button)
+
+<!-- /TOC -->
+
+
+## Building the Docker Image
+
+### Preparing Ubuntu
+
+Start by pulling the latest [Ubuntu Image from DockerHub](https://hub.docker.com/_/ubuntu):
+
+
+```bash
+podman pull ubuntu:latest
+podman run --net=host --privileged -ti ubuntu:latest /bin/bash
+podman update && podman upgrade -y
+```
+
+```bash
+cat /etc/os-release
+NAME="Ubuntu"
+VERSION="18.04.4 LTS (Bionic Beaver)"
+ID=ubuntu
+ID_LIKE=debian
+PRETTY_NAME="Ubuntu 18.04.4 LTS"
+VERSION_ID="18.04"
+```
+
+And recommit it with a descriptive name (in a new terminal from your host system):
+
+
+```bash
+podman ps -a
+CONTAINER ID  IMAGE                    COMMAND
+48fa0c8f78b2  localhost/ubuntu:latest  /bin/bash
+```
+
+```bash
+podman commit --author "Mike Polinowski" 48fa0c8f78b2 mqtt-homebridge
+podman rm 48fa0c8f78b2
+```
+
+
+```bash
+podman run \
+    --name homebridge \
+    --net=host \
+    --privileged \
+    --rm \
+    -ti -u root localhost/mqtt-homebridge /bin/bash
+```
+
+
+### Installing FFMPEG
+
+Sources: FFmpeg with fdk-aac codecs:
+
+* https://github.com/mstorsjo/fdk-aac
+* https://github.com/FFmpeg/FFmpeg
+
+
+Get the __dependencies__:
+
+
+```bash
+apt -y install \
+  autoconf \
+  automake \
+  build-essential \
+  cmake \
+  git \
+  git-core \
+  libass-dev \
+  libfreetype6-dev \
+  libsdl2-dev \
+  libtool \
+  libva-dev \
+  libvdpau-dev \
+  libvorbis-dev \
+  libx264-dev \
+  libxcb1-dev \
+  libxcb-shm0-dev \
+  libxcb-xfixes0-dev \
+  pkg-config \
+  texinfo \
+  wget \
+  zlib1g-dev
+```
+
+
+[Installing Assembler](https://trac.ffmpeg.org/wiki/CompilationGuide/Ubuntu):
+
+
+```bash
+apt install nasm yasm
+```
+
+[Installing Video Encoder](https://trac.ffmpeg.org/wiki/CompilationGuide/Ubuntu):
+
+
+```bash
+apt install -y libx264-dev libvpx-dev libfdk-aac-dev libmp3lame-dev
+```
+
+
+Download and build __fdk-aac__:
+
+
+```bash
+mkdir -p ~/ffmpeg_sources ~/bin
+cd ~/ffmpeg_sources
+git clone https://github.com/mstorsjo/fdk-aac.git
+cd fdk-aac
+./autogen.sh
+./configure --prefix=/usr/local --enable-shared --enable-static
+make -j4
+make install
+ldconfig
+cd ..
+```
+
+
+Download and build __FFmpeg__:
+
+
+
+```bash
+cd ~/ffmpeg_sources && \
+wget -O ffmpeg-snapshot.tar.bz2 https://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 && \
+tar xjvf ffmpeg-snapshot.tar.bz2 && \
+cd ffmpeg && \
+PATH="$HOME/bin:$PATH" PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure \
+  --prefix="$HOME/ffmpeg_build" \
+  --pkg-config-flags="--static" \
+  --extra-cflags="-I$HOME/ffmpeg_build/include" \
+  --extra-ldflags="-L$HOME/ffmpeg_build/lib" \
+  --extra-libs="-lpthread -lm" \
+  --bindir="$HOME/bin" \
+  --enable-gpl \
+  --enable-libass \
+  --enable-libfdk-aac \
+  --enable-libfreetype \
+  --enable-libmp3lame \
+  --enable-libvpx \
+  --enable-libx264 \
+  --enable-nonfree \
+  --target-os=linux \
+  --enable-decoder=h264 \
+  --enable-network \
+  --enable-protocol=tcp \
+  --enable-demuxer=rtsp && \
+PATH="$HOME/bin:$PATH" make && \
+make install && \
+hash -r
+cd ..
+```
+
+Now re-login or run the following command for your current shell session to recognize the new ffmpeg location:
+
+
+```bash
+export PATH=$PATH:$HOME/bin
+source ~/.profile
+```
+
+
+You can now test the command:
+
+
+```bash
+ffmpeg
+ffmpeg version N-97038-g7239254 Copyright (c) 2000-2020 the FFmpeg developers
+  built with gcc 7 (Ubuntu 7.5.0-3ubuntu1~18.04)
+  configuration: --prefix=/root/ffmpeg_build --pkg-config-flags=--static --extra-cflags=-I/root/ffmpeg_build/include --extra-ldflags=-L/root/ffmpeg_build/lib --extra-libs='-lpthread -lm' --bindir=/root/bin --enable-gpl --enable-libass --enable-libfdk-aac --enable-libfreetype --enable-libmp3lame --enable-libvpx --enable-libx264 --enable-nonfree --target-os=linux --enable-decoder=h264 --enable-network --enable-protocol=tcp --enable-demuxer=rtsp
+```
+
+
+### Installing NodeJS 12 LTS
+
+
+[Node.js v12.x for Ubuntu](https://github.com/nodesource/distributions/blob/master/README.md#debinstall)
+
+
+```bash
+curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+apt install -y nodejs
+apt-mark hold nodejs
+```
+
+
+Test and update your installation:
+
+
+```bash
+node -v
+v12.16.1
+npm -v
+6.13.4
+
+npm update -g
+```
+
+
+
+
+
+### Installing Homebridge
+
+Install [homebridge](https://www.npmjs.com/package/homebridge) and the [homebridge ui](https://www.npmjs.com/package/homebridge-config-ui-x):
+
+
+```bash
+npm install -g --unsafe-perm homebridge homebridge-config-ui-x
+```
+
+
+Copy the sample configuration:
+
+
+```bash
+cp /usr/lib/node_modules/homebridge/config-sample.json ~/.homebridge/config.json
+nano ~/.homebridge/config.json
+```
+
+
+Add this to your homebridge config.json file
+
+
+```json
+"platforms": [
+    {
+      "platform": "config",
+      "name": "Config",
+      "port": 8080,
+      "sudo": false
+    }
+]
+```
+
+And start Homebridge with:
+
+
+```bash
+homebridge
+```
+
+
+![Homebridge INSTAR MQTT](./Homebridge_01.png)
+
+
+You can install the following plugins through the Hombridge UI:
+
+* homebridge-camera-ffmpeg
+* homebridge-mqttthing
+
+
+
+![Homebridge INSTAR MQTT](./Homebridge_02.png)
+
+![Homebridge INSTAR MQTT](./Homebridge_03.png)
+
+![Homebridge INSTAR MQTT](./Homebridge_04.png)
+
+
+
+### Adding your Camera
+
+You can now switch the the __Config__ tab in the Homebridge UI and will see the sample configuration that was added by the camera plugin:
+
+
+```json
+{
+    "name": "Camera ffmpeg",
+    "cameras": [
+        {
+            "name": "Default Camera",
+            "videoConfig": {
+                "source": "-re -i rtsp://myfancy_rtsp_stream",
+                "stillImageSource": "-i http://faster_still_image_grab_url/this_is_optional.jpg",
+                "maxStreams": 2,
+                "maxWidth": 1920,
+                "maxHeight": 1080,
+                "maxFPS": 10,
+                "maxBitrate": 300,
+                "vcodec": "libx264",
+                "packetSize": 1316,
+                "audio": false,
+                "debug": false
+            }
+        }
+    ],
+    "platform": "Camera-ffmpeg"
+}
+```
+
+
+You can [edit this configuration](https://github.com/KhaosT/homebridge-camera-ffmpeg#readme) to add your personal IP camera:
+
+
+```json
+{
+    "platform": "Camera-ffmpeg",
+    "cameras": [
+    {
+        "name": "Name of your Camera",
+        "manufacturer": "INSTAR",
+        "model": "IN-9020 FullHD",
+        "serialNumber": "1234567890",
+        "firmwareRevision": "1.0",
+        "videoConfig": {
+        "source": "-rtsp_transport tcp -vcodec h264_mmal -re -i rtsp://admin:instar@192.168.2.117:554/11",
+        "stillImageSource": "-re -i http://192.168.2.117/tmpfs/auto.jpg?usr=admin&pwd=1234567890",
+        "vcodec": "libx264",
+        "maxStreams": 3,
+        "maxWidth": 1920,
+        "maxHeight": 1080,
+        "videoFilter": "scale=1280:720",
+        "maxFPS": 10,
+        "maxBitrate": 4096,
+        "packetSize": 1316,
+        "audio": true,
+        "additionalCommandline": "",
+        "debug": true
+        }
+    }
+    ]
+}
+```
+
+
+![Homebridge INSTAR MQTT](./Homebridge_05.png)
+
+
+
+
+### Adding MQTT Button
+
+
+```json
+  "accessories": [
+    {
+      "accessory": "mqttthing",
+      "type": "switch",
+      "name": "Alarm Area 1",
+      "manufacturer": "INSTAR",
+      "model": "IN-9020 FullHD",
+      "serialNumber": "1234567890",
+      "firmwareRevision": "0.1",
+      "url": "http://192.168.2.117:1883",
+      "username": "admin",
+      "password": "instar",
+      "caption": "XerXes",
+      "mqttOptions": {
+        "keepalive": 30
+      },
+      "mqttPubOptions": {
+        "retain": true
+      },
+      "logMqtt": true,
+      "topics": {
+        "getOn": {
+          "topic": "instar/local/status/alarm/area1/enable",
+          "apply": "return JSON.parse(message).val;"
+        },
+        "setOn": {
+          "topic": "instar/local/alarm/area1/enable",
+          "apply": "return JSON.stringify({val: (message)})"
+        }
+      },
+      "onValue": "on",
+      "offValue": "off",
+      "confirmationPeriodms": 1000,
+      "retryLimit": 3
+    }
+  ],
+```
+
+
+![Homebridge INSTAR MQTT](./Homebridge_06.png)
+
+
+
+Recommit the image and restart the container.
+
+```bash
+podman commit --author "Mike Polinowski" <container ID> mqtt-homebridge
+```
+
+
+```bash
+podman run \
+    --name homebridge \
+    --net=host \
+    --privileged \
+    --rm \
+    -ti -u root localhost/mqtt-homebridge /bin/bash
+```
+
+
