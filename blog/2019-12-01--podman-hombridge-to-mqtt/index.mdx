@@ -323,29 +323,30 @@ You can [edit this configuration](https://github.com/KhaosT/homebridge-camera-ff
 ```json
 {
     "platform": "Camera-ffmpeg",
+    "videoProcessor": "/root/bin/ffmpeg",
     "cameras": [
-    {
-        "name": "Name of your Camera",
-        "manufacturer": "INSTAR",
-        "model": "IN-9020 FullHD",
-        "serialNumber": "1234567890",
-        "firmwareRevision": "1.0",
-        "videoConfig": {
-        "source": "-rtsp_transport tcp -vcodec h264_mmal -re -i rtsp://admin:instar@192.168.2.117:554/11",
-        "stillImageSource": "-re -i http://192.168.2.117/tmpfs/auto.jpg?usr=admin&pwd=1234567890",
-        "vcodec": "libx264",
-        "maxStreams": 3,
-        "maxWidth": 1920,
-        "maxHeight": 1080,
-        "videoFilter": "scale=1280:720",
-        "maxFPS": 10,
-        "maxBitrate": 4096,
-        "packetSize": 1316,
-        "audio": true,
-        "additionalCommandline": "",
-        "debug": true
+        {
+            "name": "Name of your Camera",
+            "manufacturer": "INSTAR",
+            "model": "IN-9020 FullHD",
+            "serialNumber": "1234567890",
+            "firmwareRevision": "1.0",
+            "videoConfig": {
+                "source": "-rtsp_transport tcp -vcodec -re -i rtsp://admin:instar@192.168.2.117:554/12",
+                "stillImageSource": "-re -i http://192.168.2.117/tmpfs/auto.jpg?usr=admin&pwd=instar",
+                "vcodec": "libx264",
+                "maxStreams": 3,
+                "maxWidth": 1280,
+                "maxHeight": 720,
+                "videoFilter": "scale=1280:720",
+                "maxFPS": 10,
+                "maxBitrate": 4096,
+                "packetSize": 1316,
+                "audio": false,
+                "additionalCommandline": "",
+                "debug": true
+            }
         }
-    }
     ]
 }
 ```
@@ -356,46 +357,46 @@ You can [edit this configuration](https://github.com/KhaosT/homebridge-camera-ff
 
 
 
-### Adding MQTT Button
+### Adding MQTT Button to the Hombridge UI
 
 
 ```json
   "accessories": [
-    {
-      "accessory": "mqttthing",
-      "type": "switch",
-      "name": "Alarm Area 1",
-      "manufacturer": "INSTAR",
-      "model": "IN-9020 FullHD",
-      "serialNumber": "1234567890",
-      "firmwareRevision": "0.1",
-      "url": "http://192.168.2.117:1883",
-      "username": "admin",
-      "password": "instar",
-      "caption": "XerXes",
-      "mqttOptions": {
-        "keepalive": 30
-      },
-      "mqttPubOptions": {
-        "retain": true
-      },
-      "logMqtt": true,
-      "topics": {
-        "getOn": {
-          "topic": "instar/local/status/alarm/area1/enable",
-          "apply": "return JSON.parse(message).val;"
-        },
-        "setOn": {
-          "topic": "instar/local/alarm/area1/enable",
-          "apply": "return JSON.stringify({val: (message)})"
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Alarm Area 1",
+            "manufacturer": "INSTAR",
+            "model": "IN-9020 FullHD",
+            "serialNumber": "1234567890",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "instar",
+            "caption": "Alarm Area 1",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/alarm/area1/enable",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/alarm/area1/enable",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "1",
+            "offValue": "0",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
         }
-      },
-      "onValue": "on",
-      "offValue": "off",
-      "confirmationPeriodms": 1000,
-      "retryLimit": 3
-    }
-  ],
+    ],
 ```
 
 
@@ -420,3 +421,367 @@ podman run \
 ```
 
 
+This time start Homebridge with the `-I` flag to get access to the __Accessories__ tab:
+
+
+```bash
+homebridge -I
+```
+
+
+![Homebridge INSTAR MQTT](./Homebridge_07.png)
+
+
+![Homebridge INSTAR MQTT](./Homebridge_08.png)
+
+
+![Homebridge INSTAR MQTT](./Homebridge_09.png)
+
+
+
+
+
+```json
+  "accessories": [
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Alarm Area 1",
+            "manufacturer": "INSTAR",
+            "model": "IN-9020 FullHD",
+            "serialNumber": "1234567890",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "instar",
+            "caption": "Alarm Area 1",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/alarm/area1/enable",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/alarm/area1/enable",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "1",
+            "offValue": "0",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Alarm Area 2",
+            "manufacturer": "INSTAR",
+            "model": "IN-9020 FullHD",
+            "serialNumber": "1234567890",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "instar",
+            "caption": "Alarm Area 2",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/alarm/area2/enable",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/alarm/area2/enable",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "1",
+            "offValue": "0",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Alarm Area 3",
+            "manufacturer": "INSTAR",
+            "model": "IN-9020 FullHD",
+            "serialNumber": "1234567890",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "instar",
+            "caption": "Alarm Area 3",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/alarm/area3/enable",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/alarm/area3/enable",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "1",
+            "offValue": "0",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Alarm Area 4",
+            "manufacturer": "INSTAR",
+            "model": "IN-9020 FullHD",
+            "serialNumber": "1234567890",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "instar",
+            "caption": "Alarm Area 4",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/alarm/area4/enable",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/alarm/area4/enable",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "1",
+            "offValue": "0",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "PIR Sensor",
+            "manufacturer": "INSTAR",
+            "model": "IN-9020 FullHD",
+            "serialNumber": "1234567890",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "instar",
+            "caption": "PIR Sensor",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/alarm/actions/pir/enable",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/alarm/actions/pir/enable",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "1",
+            "offValue": "0",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Link Areas",
+            "manufacturer": "INSTAR",
+            "model": "IN-9020 FullHD",
+            "serialNumber": "1234567890",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "instar",
+            "caption": "Link Areas",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/alarm/actions/linkareas",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/alarm/actions/linkareas",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "on",
+            "offValue": "off",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Alarm Email",
+            "manufacturer": "INSTAR",
+            "model": "IN-9020 FullHD",
+            "serialNumber": "1234567890",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "instar",
+            "caption": "Alarm Email",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/alarm/actions/email",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/alarm/actions/email",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "on",
+            "offValue": "off",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Alarm Push",
+            "manufacturer": "INSTAR",
+            "model": "IN-9020 FullHD",
+            "serialNumber": "1234567890",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "instar",
+            "caption": "Alarm Push",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/alarm/push/enable",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/alarm/push/enable",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "on",
+            "offValue": "off",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Audio",
+            "manufacturer": "INSTAR",
+            "model": "IN-9020 FullHD",
+            "serialNumber": "1234567890",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "instar",
+            "caption": "Audio",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/multimedia/audio/enable/high",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/multimedia/audio/enable/high",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "1",
+            "offValue": "0",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Preset Position",
+            "manufacturer": "INSTAR",
+            "model": "IN-9020 FullHD",
+            "serialNumber": "1234567890",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "instar",
+            "caption": "Preset Position",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/features/ptz/preset",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/features/ptz/preset",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "1",
+            "offValue": "0",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        }
+    ],
+```
