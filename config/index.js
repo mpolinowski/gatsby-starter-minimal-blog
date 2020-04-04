@@ -4,11 +4,11 @@ module.exports = {
   siteTitle: '| Mike Polinowski | | DevNotes |', // Navigation and Site Title
   siteTitleAlt: 'Mike Polinowski', // Alternative Site title for SEO
   siteTitleManifest: '::Mike::Polinowski::',
-  siteUrl: 'https://mpolinowski.github.io/', // Domain of your site. No trailing slash!
+  siteUrl: 'https://mpolinowski.github.io', // Domain of your site. No trailing slash!
   siteLanguage: 'en', // Language Tag on <html> element
   siteHeadline: 'Mike Polinowski\'s Developer Notebook', // Headline for schema.org JSONLD
-  siteBanner: '/social/banner.jpg', // Your image for og:image tag. You can find it in the /static folder
-  favicon: 'src/favicon.png', // Your image for favicons. You can find it in the /src folder
+  siteBanner: '/assets/images/angular_momentum.png', // Your image for og:image tag. You can find it in the /static folder
+  favicon: 'src/assets/favicon.png', // Your image for favicons. You can find it in the /src folder
   siteDescription: 'A Developer Notebook and Personal Technology Playground build with React, Gatsby and MDX', // Your site description
   author: 'Mike Polinowski', // Author for schemaORGJSONLD
   siteLogo: '/social/logo.png', // Image for schemaORGJSONLD
