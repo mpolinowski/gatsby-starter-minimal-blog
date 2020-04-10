@@ -45,7 +45,7 @@ chmod -R 775 /opt/homeassistant
 
 
 ```bash
-podman run -d --rm --privileged --net=host --name="home-assistant" -e "TZ=Europe/Berlin" -v /opt/homeassistant/config:/config --net=host homeassistant/home-assistant:stable
+podman run -d --rm --privileged --net=host --name="home-assistant" -e "TZ=Europe/Berlin" -v /opt/homeassistant/config:/config homeassistant/home-assistant:stable
 ```
 
 
