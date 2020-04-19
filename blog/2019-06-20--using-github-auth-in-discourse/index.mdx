@@ -1,0 +1,31 @@
+---
+date: "2019-06-19"
+title: "User Login with Github for Discourse"
+categories:
+  - LINUX
+  - Discourse
+---
+
+![Mustang, Nepal](./photo-kt456d_645dhfh6dgjkhg4_d.jpg)
+
+
+
+Go to the [Github Developer page](https://github.com/settings/developers), then look for OAuth Apps in the left menu. Select New OAuth App. Fill in the required fields:
+
+
+![Using Github Login in Discourse](./Github_Auth_for_Discourse_01.png)
+
+
+Be sure to set the Callback URL to use the path `/auth/github/callback` at your site domain. e.g., `https://forum.instar.com/auth/github/callback`.
+
+
+After creating your application, you should see the Client ID and Client Secret. Enter those in the Discourse fields:
+
+
+```
+github_client_id
+github_client_secret
+```
+
+
+![Using Github Login in Discourse](./Github_Auth_for_Discourse_02.png)

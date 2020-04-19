@@ -1,0 +1,64 @@
+---
+date: "2019-06-20"
+title: "User Login with Twitter for Discourse"
+categories:
+  - LINUX
+  - Discourse
+---
+
+![Taipa, Macau](./photo-kt456d_645dhfh6dgjkhg4_d.jpg)
+
+
+<!-- TOC -->
+
+- [Create a Twitter Developer Account](#create-a-twitter-developer-account)
+- [Add a Authentication App](#add-a-authentication-app)
+
+<!-- /TOC -->
+
+
+
+## Create a Twitter Developer Account
+
+Go to [Twitter Developer](https://developer.twitter.com/en/apps) and sign in with your Twitter account and apply for a developer account:
+
+
+![Using Twitter Login in Discourse](./Twitter_Auth_for_Discourse_01.png)
+
+
+## Add a Authentication App
+
+Click the Create An App button:
+
+
+![Using Twitter Login in Discourse](./Twitter_Auth_for_Discourse_02.png)
+
+
+Enter a name and description for your forum and enter the address in the Website Url field:
+
+
+![Using Twitter Login in Discourse](./Twitter_Auth_for_Discourse_03.png)
+
+
+Put the check to Enable Sign in with Twitter. Enter `https://forum.instar.com/auth/twitter/callback` in the Callback URLs field. Enter the URLs for your `tos` and `policy` stuff. If you have an organization, also fill in the fields related to it:
+
+
+![Using Twitter Login in Discourse](./Twitter_Auth_for_Discourse_04.png)
+
+
+Go to the Permissions tab, choose `Read Only`, and `Request email addresses from users`, then click on __Save__:
+
+
+![Using Twitter Login in Discourse](./Twitter_Auth_for_Discourse_05.png)
+
+
+Click on the Keys and tokens tab:
+
+
+![Using Twitter Login in Discourse](./Twitter_Auth_for_Discourse_06.png)
+
+
+Copy the API key and generate the API secret and paste them in the twitter_consumer_key and twitter_consumer_secret settings in the Login section of your Discourse site (/admin/site_settings/category/login):
+
+
+![Using Twitter Login in Discourse](./Twitter_Auth_for_Discourse_07.png)
