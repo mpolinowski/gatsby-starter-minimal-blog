@@ -1,0 +1,76 @@
+---
+date: "2019-06-21"
+title: "User Login with Facebook for Discourse"
+categories:
+  - LINUX
+  - Discourse
+---
+
+![Bakhtapur, Nepal](./photo-kt456d_645dhfh6dgjkhg4_d.jpg)
+
+
+
+Go to the [Facebook Developer page](https://developers.facebook.com/apps) Login with the credentials of the account you want to connect to Discourse, click on __Get Started__ and follow the wizard:
+
+
+![Using Facebook Login in Discourse](./Use_Facebook_to_Login_to_Discourse_01.png)
+
+
+Select Developer:
+
+
+![Using Facebook Login in Discourse](./Use_Facebook_to_Login_to_Discourse_02.png)
+
+
+Provide a name for the app, for example `Discourse Login` and click on __Create App ID__:
+
+
+![Using Facebook Login in Discourse](./Use_Facebook_to_Login_to_Discourse_03.png)
+
+
+Click Set Up below __Facebook Login__:
+
+
+![Using Facebook Login in Discourse](./Use_Facebook_to_Login_to_Discourse_04.png)
+
+
+From the menu on the left, exit Quickstart by clicking on Settings under Facebook Login:
+
+
+![Using Facebook Login in Discourse](./Use_Facebook_to_Login_to_Discourse_05.png)
+
+
+Setup the Valid OAuth redirect URI field, entering e.g. `https://forum.instar.com/auth/facebook/callback`:
+
+
+![Using Facebook Login in Discourse](./Use_Facebook_to_Login_to_Discourse_06.png)
+
+
+Navigate to __Settings/Basic__, enter your Discourse URL (`https://forum.instar.com`) in the __App Domains__ field and also enter the URL for your Discourse site privacy policy and Terms of Service in the appropriate fields and also upload the icon of your site:
+
+
+![Using Facebook Login in Discourse](./Use_Facebook_to_Login_to_Discourse_07.png)
+
+
+At the bottom of the page click on __+ Add Platform__ and select __Website__:
+
+
+![Using Facebook Login in Discourse](./Use_Facebook_to_Login_to_Discourse_08.png)
+
+
+Enter your Discourse URL here, for example `https://forum.instar.com` and click __Save Changes__:
+
+
+![Using Facebook Login in Discourse](./Use_Facebook_to_Login_to_Discourse_09.png)
+
+
+Click on the Status button to change your app from in development to public:
+
+
+![Using Facebook Login in Discourse](./Use_Facebook_to_Login_to_Discourse_10.png)
+
+
+In Discourse site settings, enter your Facebook app’s __App ID__ and __App Secret__ in the `facebook_app_id` and `facebook_app_secret` fields:
+
+
+![Using Facebook Login in Discourse](./Use_Facebook_to_Login_to_Discourse_11.png)
