@@ -12,19 +12,37 @@ categories:
 
 <!-- TOC -->
 
+- [Configure FirewallD](#configure-firewalld)
 - [Download Discourse from Github](#download-discourse-from-github)
 - [Configure Discourse](#configure-discourse)
-  - [Set Mail Credentials](#set-mail-credentials)
-  - [Set Domain](#set-domain)
-  - [Optional: Tune Memory Settings](#optional-tune-memory-settings)
+    - [Set Mail Credentials](#set-mail-credentials)
+    - [Set Domain](#set-domain)
+    - [Optional: Tune Memory Settings](#optional-tune-memory-settings)
 - [Bootstrap Discourse](#bootstrap-discourse)
 - [Access Discourse](#access-discourse)
 - [Sign Up and Create Admin Account](#sign-up-and-create-admin-account)
 - [Upgrade](#upgrade)
 - [Install Plugins](#install-plugins)
+- [Missing Certificate](#missing-certificate)
+    - [Forced Manual Renew](#forced-manual-renew)
 
 <!-- /TOC -->
 
+## Configure FirewallD
+
+```bash
+firewall-cmd --zone=public --permanent --add-service=http
+firewall-cmd --zone=public --permanent --add-service=https
+firewall-cmd --zone=public --permanent --add-service=pop3s
+firewall-cmd --zone=public --permanent --add-service=smtp
+firewall-cmd --reload
+firewall-cmd --zone=public --list-services
+```
+
+
+Not sure if those are necessary (needs testing):
+firewall-cmd --permanent --zone=trusted --add-interface=docker0
+firewall-cmd --permanent --zone=trusted --add-port=25/tcp
 
 ## Download Discourse from Github
 
@@ -296,4 +314,62 @@ To test the spoiler plugin start a new thread and post:
 
 ```
 [spoiler]This is a spoiler[/spoiler] 
+```
+
+
+## Missing Certificate
+
+Error message with `/opt/discourse/launcher logs app`:
+
+
+```bash
+[emerg] cannot load certificate "/shared/ssl/forum.instar.com.cer": PEM_read_bio_X509_AUX() failed (SSL: error:0909006C:PEM routines:get_name:no start line:Expecting: TRUSTED CERTIFICATE)
+```
+
+
+Remove old certificate and rebuild:
+
+```bash
+rm -rf /opt/discourse/shared/standalone/ssl
+rm -rf /opt/discourse/shared/standalone/letsencrypt
+./launcher rebuild app
+```
+
+
+### Forced Manual Renew
+
+If this does not solve the issue try a manual renewal:
+
+
+```bash
+cd /opt/discourse
+./launcher enter app
+/shared/letsencrypt/acme.sh  --issue -d forum.instar.com --force --debug
+/shared/letsencrypt/acme.sh  --renew -d forum.instar.com --force --debug
+```
+
+
+This will show you the issue - e.g. rate limit:
+
+
+```bash
+Create new order error. Le_OrderFinalize not found. {
+  "type": "urn:ietf:params:acme:error:rateLimited",
+  "detail": "Error creating new order :: too many certificates already issued for exact set of domains: forum.instar.com: see https://letsencrypt.org/docs/rate-limits/",
+  "status": 429
+}
+```
+
+
+Retry the renewal after a while or assign a different domain to your forum:
+
+
+```bash
+/opt/discourse/launcher enter app
+service nginx stop
+/usr/sbin/nginx -c /etc/nginx/letsencrypt.conf
+LE_WORKING_DIR=/shared/letsencrypt DEBUG=1 /shared/letsencrypt/acme.sh --issue -d example.com -k 4096 -w /var/www/discourse/public
+LE_WORKING_DIR=/shared/letsencrypt /shared/letsencrypt/acme.sh --installcert -d example.com --fullchainpath /shared/ssl/forum.instar.com.cer --keypath /shared/ssl/forum.instar.com.key --reloadcmd "sv reload nginx"
+/usr/sbin/nginx -c /etc/nginx/letsencrypt.conf -s stop
+exit
 ```

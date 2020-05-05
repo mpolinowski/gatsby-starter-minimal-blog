@@ -1,0 +1,72 @@
+---
+date: "2020-01-05"
+title: "Installing FirewallD on CentOS 8"
+categories:
+  - LINUX
+
+---
+
+![Shenzhen, China](./photo-kt443t6d_64hdh43hfh6dgjdfhg4_d.jpg)
+
+
+
+<!-- TOC -->
+
+- [Installing FirewallD](#installing-firewalld)
+- [Enable FirewallD](#enable-firewalld)
+- [Opening Ports and Services](#opening-ports-and-services)
+
+<!-- /TOC -->
+
+
+## Installing FirewallD
+
+firewalld is installed by default on some Linux distributions, including many images of CentOS 8. However, it may be necessary for you to install firewalld yourself:
+
+
+```bash
+yum install firewalld
+```
+
+
+## Enable FirewallD
+
+After you install firewalld, you can enable it as a system service:
+
+
+```bash
+systemctl enable firewalld
+systemctl start firewalld
+firewall-cmd --state
+```
+
+
+## Opening Ports and Services
+
+Enable available services:
+
+```bash
+firewall-cmd --permanent --zone=public --add-service=cockpit --add-service=http  --add-service=https
+firewall-cmd --reload
+firewall-cmd --zone=public --list-services
+```
+
+
+And open specific ports:
+
+
+```bash
+firewall-cmd --permanent --zone=public --add-port=12345/tcp
+firewall-cmd --reload
+firewall-cmd --zone=public --list-ports
+```
+
+
+## For Docker
+
+```bash
+firewall-cmd --zone=public --change-interface=docker0 --permanent
+firewall-cmd --zone=public --add-masquerade --permanent
+firewall-cmd --reload
+firewall-cmd --list-all
+```
