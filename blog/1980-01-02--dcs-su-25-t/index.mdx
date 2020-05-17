@@ -5,23 +5,25 @@ categories:
   - dcs
 ---
 
+![SU-25T Frogfoot](./photo-kt443t6d_64hdh43hfh6dgjdfhg4_d.jpg)
+
 
 <!-- TOC -->
 
-- [Su-25T Basic Info](#su-25t-basic-info)
+- [Su-25T Key Map](#su-25t-key-map)
+- [Numbers](#numbers)
 - [Instruments](#instruments)
     - [Fuel](#fuel)
     - [Warning Lamps](#warning-lamps)
     - [Hydraulics](#hydraulics)
     - [Threat Types](#threat-types)
+    - [RTB](#rtb)
 - [Airport/Airfield/Aerodrome IDs](#airportairfieldaerodrome-ids)
-- [Ground Radar signitures](#ground-radar-signitures)
-    - [List of Radar designations](#list-of-radar-designations)
+- [HARM Ground Radar Signatures](#harm-ground-radar-signatures)
+    - [List of Radar Designations](#list-of-radar-designations)
     - [Radar/IR Threat (range/height)](#radarir-threat-rangeheight)
         - [Enemy radar threats overview (range/height)](#enemy-radar-threats-overview-rangeheight)
         - [Enemy IR threats overview (range/height)](#enemy-ir-threats-overview-rangeheight)
-- [How to shoot multiple Vikhr missiles](#how-to-shoot-multiple-vikhr-missiles)
-- [HUD color](#hud-color)
 - [Su-25T Pylons](#su-25t-pylons)
     - [Air-To-Air (IR)](#air-to-air-ir)
     - [Bombs (Guided/Free fall)](#bombs-guidedfree-fall)
@@ -32,29 +34,62 @@ categories:
 <!-- /TOC -->
 
 
-## Su-25T Basic Info
+## Su-25T Key Map
 
-The information in this guide is subject to change if future updates modify/add anything.
+| Action | Standard assignment |
+| -- | -- |
+| Engines Start | RShift + Home |
+| Engines Stop | RShift + End |
+| Electric Power | RShift + L |
+| Canopy | LCtrl + C |
+| Wheel Brake On/Off | W |
+| Gear Retraction/extension | G |
+| Flaps | F |
+| Landing Flaps Extend | LShift + F |
+| Landing Flaps Raise | LCtrl + F |
+| Nosewheel Steering | LAlt + Q |
+| Air Brake | B |
+| Communication Menu | \ |
+| HUD Navigation Modes | 1 |
+| | __a__ Base Navigation |
+| | __b__ Enroute |
+| | __c__ Return |
+| | __d__ Landing |
+| HUD A2A Mode | 6 |
+| HUD A2G Mode | 7 |
+| HUD Gunsight | 8 |
+| Electro-Optical System | O |
+| Lazing | Ctrl+O |
+| Drop Tanks / Weapons | LCtrl + W |
+| Trim Wing Left Down | RCtrl + , |
+| Trim Wing Right Down | RCtrl + / |
+| Trim Nose Up | RCtrl + . |
+| Trim Nose Down | RCtrl + ; |
+| Trim Rudder Left | RCtrl + Z |
+| Trim Rudder Right | RCtrl + X |
+| Parachute | P |
+| Active Pause | LShift+LWin+Pause |
 
-Mission Role Tasks :
-* AWACS (Airborne Warning And Control System) : An airborne radar
-* CAP (Combat Air Patrol) : Protect friendly assets in and around the station area
-* SEAD (Suppression of Enemy Air Defenses) : Engage SAM radar and launch vehicles.
-* CAS (Close Air Support) : Destroy as many vehicles as possible
-* Sweep : Aggressive counter air into enemy territory
-* Intercept : Air to Air interception of an assigned aircraft
-* Escort : Protect a target
-* OCA (Offensive Counter Air) Engage dangerous enemy assets such like SAM launch vehicles and airbases
-* Strike : Standard Air to Ground mission against enemy war production
-* Deep Strike : Strike deep into enemy territory
-* FAC (Forward Air Control) : Assign targets
-* Recon (Reconnaissance) : Gather intelligence of enemy area
 
+![SU-25T Frogfoot](./photo-kt443t6d_64hdh43hfh6dgjdfhg4_d.png)
+
+
+## Numbers
+
+| Airframe | Value |
+| -- | -- |
+| Rotate Speed | 240 km/h |
+| Rotate Angle | 10 deg (max. 12 deg) |
+| Flaps Up | 400 km/h |
+| Cruise Speed | 500 km/h |
+| Landing Speed | 300 km/h |
+| Landing Speed (Heavy) | 350 km/h |
+| Prachute | 280 km/h |
 
 ## Instruments
 
 
-![SU-25T Instruments](./Frogfoot_Instruments_01.jpg)
+![SU-25T Instruments](./Frogfoot_Instruments_01.jpg.png)
 
 
 ### Fuel
@@ -62,7 +97,7 @@ Mission Role Tasks :
 A lamp is lit it means that a particular tank is empty.
 
 
-![SU-25T Instruments](./Frogfoot_Instruments_02.jpg)
+![SU-25T Instruments](./Frogfoot_Instruments_02.jpg.png)
 
 
 The meanings of the lamps:
@@ -136,31 +171,102 @@ I've noticed only 4 warning lamps work in the Su-25T
 * __C__ = AWACS
 
 
+
+### RTB
+
+
+1. Hit `1` on your keyboard until you are in __RTN__ mode.
+2. Align your __HSI__.
+3. Center your __ADI__.
+4. Keep your Heading Indicator inside the __Circle__ in your __HUD__.
+
+
+![SU-25T Instruments](./Frogfoot_Instruments_09.png)
+
+
 ## Airport/Airfield/Aerodrome IDs
 
-_This is useful if you are not looking at a map or need more precise way of figuring out an airfield besides looking for the closest one._
-
-These IDs are used with the navigation system built into the HUD of the Su-25T, when in navigation mode (pressing 1 for Route mode (`MPW` or `ENR`), Airfield beacon mode (`B3B` or `RTN`), and Landing mode (`ПОС` or `LNDC`) , pressing `Ctrl+` will cycle through the waypoints/ID's of Airfields in "Airfield beacon mode" and also the landing glidescopes of airfields in __Landing mode__.
+These IDs are used with the navigation system built into the HUD of the Su-25T, when in navigation mode (pressing __1__ for Route mode (`MPW` or `ENR`), Airfield beacon mode (`B3B` or `RTN`), and Landing mode (`ПОС` or `LNDC`) , pressing __Ctrl+`__ will cycle through the waypoints/ID's of Airfields in __Return Navigation Mode__ and in __Landing Mode__.
 
 
-![SU-25T Instruments](./Frogfoot_Instruments_07.jpg)
+
+![SU-25T Instruments](./photo-kt443t6d_64hdh43hfh6dgjdfhg4_j.png)
 
 
-## Ground Radar signitures
 
-When equiped with Fantasmagoria pod , going into ground attack mode (__7__) then activate the pod with (__I__) and Radar targets will appear on your hud. Some have designations to identify them with.
+| ID | ICAO | Aerodrome Name | Alternate |
+| -- | -- | -- | -- |
+| 01 | URKA | Anapa | 03 |
+| 02 | URKL | Krasnodar Center | 08 |
+| 03 | URKN | Novorossiysk | 06 |
+| 04 | URKW | Krymsk | 03 |
+| 05 | URKH | Maykop-Khanskaya | 08 |
+| 06 | URKG | Gelendzhik | 03 |
+| 07 | URSS | Sochi-Adler | 10 |
+| 08 | URKK | Krasnodar-Pashkovsky | 02 |
+| 09 | UGSS | Sukhumi-Babushara | 10 |
+| 10 | UG23 | Gudata | 09 |
+| 11 | UGSB | Batumi | 13 |
+| 12 | UGKS | Senaki-Kolkhi | 14 |
+| 13 | UG5X | Kobuleti | 12 |
+| 14 | UGKO | Kutisi-Kopitnari | 12 |
+| 15 | URMM | Mineralnye Vody | 16 |
+| 16 | URMN | Nalchik | 17 |
+| 17 | XRMF | Mozdkok | 21 |
+| 18 | UGTB | Tiblisi-Lochini | 19 |
+| 19 | UG24 | Tiblisi-Soganlug | 18 |
+| 20 | UG27 | Vaziani | 18 |
+| 21 | URMO | Beslan | 17 |
+
+
+
+## HARM Ground Radar Signatures
+
+When equipped with __Fantasmagoria__ pod , going into ground attack mode (__7__) then activate the pod with (__I__) and Radar targets will appear on your HUD. Some have designations to identify them with.
 
 
 ![SU-25T Instruments](./Frogfoot_Instruments_08.jpg)
 
 
-### List of Radar designations
+### List of Radar Designations
 
+| SAM System | Radar Designation | HUD Designation |
+| -- | -- | -- |
+| Patriot | AN/MPQ-53 | P |
+| Hawk | AN/MPQ-50 | H50 |
+| Hawk | AN/MPQ-46 | H46 |
+| Roland | Roland | G |
+| Roland | Roland | R |
+| SA-10 S-300PS SR 64N6E | Big Bird | BB |
+| SA-10 S-300PS SR 5N66M | Clam Shell | CS |
+| SA-10 S-300PS TR 30N6 | Flap Lid | FL |
+| SA-11 Buk SR 9S18M1 | 9S18Mq | S11 |
+| SA-6 Kub STR 9S91 | 1S91 | SA6 |
+| SA-8 Osa 9A33 | 9A33 | SA8 |
+| SA-15 Tor 9A331 | 9A331 | S15 |
+| SA-19 Tunguska 2S6 | 2S6 | S19 |
+| SA-3 SR P-19 | Flat Face | FLF |
+| SA-3 TR SNR-125 | SNR-125 | SA3 | 
 
-![SU-25T Instruments](./Frogfoot_Instruments_09.jpg)
+<br/><br/>
+
+| Ships | Radar Designation | HUD Designation |
+| -- | -- | -- |
+| USS Carl Vinson | Sea Sparrow | SS |
+| CG Ticonderoga | SM2 | SM2 |
+| FFG Oliver H. Perry | SM2 | SM2 |
+| Admiral Kuznetsov | SA-N-9 Gauntlet | SN9 |
+| Neutrashimy | SA-N-9 Gauntlet | SN9 |
+| Moskva | SA-N-6 Grumble | SN6 |
+| Albatros | SA-N-4 | SA8 |
+| Rezky | SA-N-4 | SA8 |
 
 
 ### Radar/IR Threat (range/height)
+
+
+![SU-25T Frogfoot](./photo-kt443t6d_64hdh43hfh6dgjdfhg4_g.png)
+
 
 #### Enemy radar threats overview (range/height)
 
@@ -188,26 +294,6 @@ When equiped with Fantasmagoria pod , going into ground attack mode (__7__) then
 * 4.5km/3km 9k38 IGLA/Grouse (Manpad)
 * 5km/3.5km Strela-10/Gopher
 * 8.5km/3km M48 Chaparral
-
-
-## How to shoot multiple Vikhr missiles
-
-1. Set launch mode to 2 rocket launch (hit Cntrl+V so that the missile launch circle is in the center of your hud, not the side.)
-2. Press trigger for one missile to launch, hold for two to launch
-3. Turn the laser off after each target is destroyed then slew shkval and lock onto new targert , the laser turns on when you fire Vikhr (Vikhr turns off laser after set time by itself, but this takes to long).
-
-
-## HUD color
-
-(`Right Ctrl` + `H`) changes the color of your hud to : Red,Green,Orange,Yellow
-Brightness of HUD's color changed with (`Right Ctrl` + `H`) also.
-Below are two example :
-
-
-![SU-25T Instruments](./Frogfoot_Instruments_10.jpg)
-
-
-![SU-25T Instruments](./Frogfoot_Instruments_11.jpg)
 
 
 
@@ -266,6 +352,9 @@ _Range of bombs depends on the height and horizontal speed they were dropped at_
 | Kh-25 MP |	Medium-range, anti-radar, air-to-surface missile |	Semi-Active Laser |	25 |	90 |	320	| Mach 0.76 |	SAM Radars - NEEDS L-081 __Fantasmagoria__ Pod Press (I) to activate/deactivate it in air-to-ground mode(__fire and forget weapon__) (7) (_Pylon 3,4,5,9,8,7_) |
 
 
+![SU-25T Instruments](./photo-kt443t6d_64hdh43hfh6dgjdfhgjhgv.png)
+
+
 ## Pods/Fuel Tanks
 
 | Name |	Type |	Location |	Purpose |
@@ -279,6 +368,10 @@ _Range of bombs depends on the height and horizontal speed they were dropped at_
 
 
 ## Rockets (S - Unguided)
+
+
+![SU-25T Instruments](./photo-kt443t6d_64hdh43hfh6dgjdfhg4_7.png)
+
 
 | Weapon |	Type |	Guidance |	Range (km) |	Warhead (kg) |	Weight (kg) | Speed (km/h) |	Intended Targets |
 | -- | -- | -- | -- | -- | -- | -- | -- |

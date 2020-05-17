@@ -456,7 +456,7 @@ homebridge -I
             "name": "Alarm Area 1",
             "manufacturer": "INSTAR",
             "model": "IN-9020 FullHD",
-            "serialNumber": "1234567890",
+            "serialNumber": "1234567889",
             "firmwareRevision": "0.1",
             "url": "http://192.168.2.117:1883",
             "username": "admin",
@@ -490,7 +490,7 @@ homebridge -I
             "name": "Alarm Area 2",
             "manufacturer": "INSTAR",
             "model": "IN-9020 FullHD",
-            "serialNumber": "1234567890",
+            "serialNumber": "1234567891",
             "firmwareRevision": "0.1",
             "url": "http://192.168.2.117:1883",
             "username": "admin",
@@ -524,7 +524,7 @@ homebridge -I
             "name": "Alarm Area 3",
             "manufacturer": "INSTAR",
             "model": "IN-9020 FullHD",
-            "serialNumber": "1234567890",
+            "serialNumber": "1234567892",
             "firmwareRevision": "0.1",
             "url": "http://192.168.2.117:1883",
             "username": "admin",
@@ -558,7 +558,7 @@ homebridge -I
             "name": "Alarm Area 4",
             "manufacturer": "INSTAR",
             "model": "IN-9020 FullHD",
-            "serialNumber": "1234567890",
+            "serialNumber": "1234567893",
             "firmwareRevision": "0.1",
             "url": "http://192.168.2.117:1883",
             "username": "admin",
@@ -592,7 +592,7 @@ homebridge -I
             "name": "PIR Sensor",
             "manufacturer": "INSTAR",
             "model": "IN-9020 FullHD",
-            "serialNumber": "1234567890",
+            "serialNumber": "1234567894",
             "firmwareRevision": "0.1",
             "url": "http://192.168.2.117:1883",
             "username": "admin",
@@ -626,7 +626,7 @@ homebridge -I
             "name": "Link Areas",
             "manufacturer": "INSTAR",
             "model": "IN-9020 FullHD",
-            "serialNumber": "1234567890",
+            "serialNumber": "1234567895",
             "firmwareRevision": "0.1",
             "url": "http://192.168.2.117:1883",
             "username": "admin",
@@ -660,7 +660,7 @@ homebridge -I
             "name": "Alarm Email",
             "manufacturer": "INSTAR",
             "model": "IN-9020 FullHD",
-            "serialNumber": "1234567890",
+            "serialNumber": "1234567896",
             "firmwareRevision": "0.1",
             "url": "http://192.168.2.117:1883",
             "username": "admin",
@@ -694,7 +694,7 @@ homebridge -I
             "name": "Alarm Push",
             "manufacturer": "INSTAR",
             "model": "IN-9020 FullHD",
-            "serialNumber": "1234567890",
+            "serialNumber": "1234567897",
             "firmwareRevision": "0.1",
             "url": "http://192.168.2.117:1883",
             "username": "admin",
@@ -728,7 +728,7 @@ homebridge -I
             "name": "Audio",
             "manufacturer": "INSTAR",
             "model": "IN-9020 FullHD",
-            "serialNumber": "1234567890",
+            "serialNumber": "1234567898",
             "firmwareRevision": "0.1",
             "url": "http://192.168.2.117:1883",
             "username": "admin",
@@ -762,7 +762,7 @@ homebridge -I
             "name": "Preset Position",
             "manufacturer": "INSTAR",
             "model": "IN-9020 FullHD",
-            "serialNumber": "1234567890",
+            "serialNumber": "1234567899",
             "firmwareRevision": "0.1",
             "url": "http://192.168.2.117:1883",
             "username": "admin",
@@ -791,4 +791,436 @@ homebridge -I
             "retryLimit": 3
         }
     ],
+```
+
+
+--> [Wiki MQTT](https://wiki.instar.com/Advanced_User/Homebridge_INSTAR_MQTT_to_Homekit/)
+[Wiki HTTP](https://wiki.instar.com/Frequently_Asked_Question/Homebridge_to_Homekit_without_MQTT/)
+[Wiki Node-RED](https://wiki.instar.com/Frequently_Asked_Question/Homebridge_in_Node-RED/)
+
+
+```bash
+podman run \
+  --net=host \
+  --name=instar-mqtt-homebridge \
+  --privileged \
+  --rm \
+  -e PUID=0 -e PGID=0 \
+  -e TZ=Europe/Berlin \
+  -e HOMEBRIDGE_CONFIG_UI=1 \
+  -e HOMEBRIDGE_CONFIG_UI_PORT=8080 \
+  -e HOMEBRIDGE_INSECURE=1 \
+  -v /opt/homebridge:/homebridge \
+  -ti -u root localhost/instar-mqtt-homebridge /bin/bash
+```
+
+
+
+```json
+{
+    "bridge": {
+        "name": "Homebridge",
+        "username": "CC:22:3D:E3:CE:35",
+        "manufacturer": "homebridge.io",
+        "model": "homebridge",
+        "port": 51826,
+        "pin": "255-45-155"
+    },
+    "description": "This is an example configuration file with one fake accessory and one fake platform. You can use this as a template for creating your own configuration file containing devices you actually own.",
+    "ports": {
+        "start": 52100,
+        "end": 52150,
+        "comment": "This section is used to control the range of ports that separate accessory (like camera or television) should be bind to."
+    },
+    "accessories": [
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Alarm Area 1",
+            "manufacturer": "INSTAR",
+            "model": "IN-8015 FullHD",
+            "serialNumber": "1234567889",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "!#()*-./<?@[]^_{|}",
+            "caption": "Alarm Area 1",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/alarm/area1/enable",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/alarm/area1/enable",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "1",
+            "offValue": "0",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Alarm Area 2",
+            "manufacturer": "INSTAR",
+            "model": "IN-8015 FullHD",
+            "serialNumber": "1234567891",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "!#()*-./<?@[]^_{|}",
+            "caption": "Alarm Area 2",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/alarm/area2/enable",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/alarm/area2/enable",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "1",
+            "offValue": "0",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Alarm Area 3",
+            "manufacturer": "INSTAR",
+            "model": "IN-8015 FullHD",
+            "serialNumber": "1234567892",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "!#()*-./<?@[]^_{|}",
+            "caption": "Alarm Area 3",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/alarm/area3/enable",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/alarm/area3/enable",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "1",
+            "offValue": "0",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Alarm Area 4",
+            "manufacturer": "INSTAR",
+            "model": "IN-8015 FullHD",
+            "serialNumber": "1234567893",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "!#()*-./<?@[]^_{|}",
+            "caption": "Alarm Area 4",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/alarm/area4/enable",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/alarm/area4/enable",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "1",
+            "offValue": "0",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "PIR Sensor",
+            "manufacturer": "INSTAR",
+            "model": "IN-8015 FullHD",
+            "serialNumber": "1234567894",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "!#()*-./<?@[]^_{|}",
+            "caption": "PIR Sensor",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/alarm/actions/pir/enable",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/alarm/actions/pir/enable",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "1",
+            "offValue": "0",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Link Areas",
+            "manufacturer": "INSTAR",
+            "model": "IN-8015 FullHD",
+            "serialNumber": "1234567895",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "!#()*-./<?@[]^_{|}",
+            "caption": "Link Areas",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/alarm/actions/linkareas",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/alarm/actions/linkareas",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "on",
+            "offValue": "off",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Alarm Email",
+            "manufacturer": "INSTAR",
+            "model": "IN-8015 FullHD",
+            "serialNumber": "1234567896",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "!#()*-./<?@[]^_{|}",
+            "caption": "Alarm Email",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/alarm/actions/email",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/alarm/actions/email",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "on",
+            "offValue": "off",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Alarm Push",
+            "manufacturer": "INSTAR",
+            "model": "IN-8015 FullHD",
+            "serialNumber": "1234567897",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "!#()*-./<?@[]^_{|}",
+            "caption": "Alarm Push",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/alarm/push/enable",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/alarm/push/enable",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "on",
+            "offValue": "off",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Audio",
+            "manufacturer": "INSTAR",
+            "model": "IN-8015 FullHD",
+            "serialNumber": "1234567898",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "!#()*-./<?@[]^_{|}",
+            "caption": "Audio",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/multimedia/audio/enable/high",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/multimedia/audio/enable/high",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "1",
+            "offValue": "0",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "mqttthing",
+            "type": "switch",
+            "name": "Preset Position",
+            "manufacturer": "INSTAR",
+            "model": "IN-8015 FullHD",
+            "serialNumber": "1234567899",
+            "firmwareRevision": "0.1",
+            "url": "http://192.168.2.117:1883",
+            "username": "admin",
+            "password": "!#()*-./<?@[]^_{|}",
+            "caption": "Preset Position",
+            "mqttOptions": {
+                "keepalive": 30
+            },
+            "mqttPubOptions": {
+                "retain": true
+            },
+            "logMqtt": true,
+            "topics": {
+                "getOn": {
+                    "topic": "instar/local/status/features/ptz/preset",
+                    "apply": "return JSON.parse(message).val;"
+                },
+                "setOn": {
+                    "topic": "instar/local/features/ptz/preset",
+                    "apply": "return JSON.stringify({val: (message)})"
+                }
+            },
+            "onValue": "1",
+            "offValue": "0",
+            "confirmationPeriodms": 1000,
+            "retryLimit": 3
+        },
+        {
+            "accessory": "HTTP-SWITCH",
+            "type": "switch",
+            "name": "Areas On",
+            "manufacturer": "INSTAR",
+            "model": "IN-8015 FullHD",
+            "serialNumber": "1234567900",
+            "firmwareRevision": "0.1",
+            "switchType": "stateless",
+            "caption": "All Areas On",
+            "onUrl": [
+                "http://admin:1234567890@192.168.2.117/param.cgi?cmd=setmdattr&-name=1&-enable=1",
+                "http://admin:1234567890@192.168.2.117/param.cgi?cmd=setmdattr&-name=2&-enable=1",
+                "http://admin:1234567890@192.168.2.117/param.cgi?cmd=setmdattr&-name=3&-enable=1",
+                "http://admin:1234567890@192.168.2.117/param.cgi?cmd=setmdattr&-name=4&-enable=1"
+            ]
+        },
+        {
+            "accessory": "HTTP-SWITCH",
+            "name": "Areas Off",
+            "manufacturer": "INSTAR",
+            "model": "IN-8015 FullHD",
+            "serialNumber": "1234567901",
+            "firmwareRevision": "0.1",
+            "switchType": "stateless",
+            "caption": "All Areas Off",
+            "onUrl": [
+                "http://admin:1234567890@192.168.2.117/param.cgi?cmd=setmdattr&-name=1&-enable=0",
+                "http://admin:1234567890@192.168.2.117/param.cgi?cmd=setmdattr&-name=2&-enable=0",
+                "http://admin:1234567890@192.168.2.117/param.cgi?cmd=setmdattr&-name=3&-enable=0",
+                "http://admin:1234567890@192.168.2.117/param.cgi?cmd=setmdattr&-name=4&-enable=0"
+            ]
+        }
+    ],
+    "platforms": [
+        {
+            "name": "Config",
+            "port": 8080,
+            "auth": "form",
+            "theme": "dark-mode",
+            "tempUnits": "c",
+            "lang": "auto",
+            "sudo": false,
+            "accessoryControl": {
+                "debug": true
+            },
+            "platform": "config"
+        }
+    ]
+}
 ```

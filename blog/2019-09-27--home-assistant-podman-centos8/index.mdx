@@ -172,6 +172,7 @@ And and run it:
 ```bash
 podman run \
   --net=host \
+  --privileged \
   --rm \
   --name iobroker \
   -v /opt/iobroker:/opt/iobroker \
@@ -196,6 +197,7 @@ And and run it:
 ```bash
 podman run --name="motioneye" \
     --net=host \
+    --privileged \
     --rm \
     --hostname="motioneye" \
     -v /etc/localtime:/etc/localtime:ro \
