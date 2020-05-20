@@ -794,9 +794,9 @@ homebridge -I
 ```
 
 
---> [Wiki MQTT](https://wiki.instar.com/Advanced_User/Homebridge_INSTAR_MQTT_to_Homekit/)
-[Wiki HTTP](https://wiki.instar.com/Frequently_Asked_Question/Homebridge_to_Homekit_without_MQTT/)
-[Wiki Node-RED](https://wiki.instar.com/Frequently_Asked_Question/Homebridge_in_Node-RED/)
+* [Wiki MQTT](https://wiki.instar.com/Advanced_User/Homebridge_INSTAR_MQTT_to_Homekit/)
+* [Wiki HTTP](https://wiki.instar.com/Frequently_Asked_Question/Homebridge_to_Homekit_without_MQTT/)
+* [Wiki Node-RED](https://wiki.instar.com/Frequently_Asked_Question/Homebridge_in_Node-RED/)
 
 
 ```bash
@@ -815,16 +815,32 @@ podman run \
 ```
 
 
+```bash
+podman run \
+  --net=host \
+  --name=instar-mqtt-homebridge \
+  --privileged \
+  --rm \
+  -e PUID=0 -e PGID=0 \
+  -e TZ=Europe/Berlin \
+  -e HOMEBRIDGE_CONFIG_UI=1 \
+  -e HOMEBRIDGE_CONFIG_UI_PORT=8080 \
+  -e HOMEBRIDGE_INSECURE=1 \
+  -v /opt/homebridge:/homebridge \
+  -ti -u root docker.io/oznu/homebridge /bin/ash
+```
+
+
 
 ```json
 {
     "bridge": {
         "name": "Homebridge",
-        "username": "CC:22:3D:E3:CE:35",
+        "username": "AA:CC:AA:AA:CC:AA",
         "manufacturer": "homebridge.io",
         "model": "homebridge",
         "port": 51826,
-        "pin": "255-45-155"
+        "pin": "866-88-668"
     },
     "description": "This is an example configuration file with one fake accessory and one fake platform. You can use this as a template for creating your own configuration file containing devices you actually own.",
     "ports": {
@@ -1220,6 +1236,30 @@ podman run \
                 "debug": true
             },
             "platform": "config"
+        },
+        {
+            "cameras": [
+                {
+                    "name": "IN-8015 Full HD",
+                    "manufacturer": "INSTAR",
+                    "model": "IN-8015 Full HD",
+                    "serialNumber": "000-0000-001",
+                    "firmwareRevision": "v666",
+                    "videoConfig": {
+                        "source": "-re -i rtsp://admin:1234567890@192.168.2.117:554/12",
+                        "stillImageSource": "-re -i http://192.168.2.117:80/tmpfs/auto.jpg?usr=admin&pwd=1234567890",
+                        "maxStreams": 3,
+                        "maxWidth": 640,
+                        "maxHeight": 352,
+                        "maxFPS": 15,
+                        "maxBitrate": 512,
+                        "preserveRatio": "W",
+                        "vcodec": "libx264",
+                        "additionalCommandline": "-rtsp_transport tcp"
+                    }
+                }
+            ],
+            "platform": "Camera-ffmpeg"
         }
     ]
 }
