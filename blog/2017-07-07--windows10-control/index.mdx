@@ -64,3 +64,19 @@ How to stop your PC from automatically restarting after installing updates. Firs
 ![Windows 10 Whisperer](./win10_07.png)
 
 ![Windows 10 Whisperer](./win10_08.png)
+
+
+
+
+
+## Making Room for an Update
+
+Temporarily deactivate hibernation (delete `hibfile` from your C drive) so an update has a chance to run through:
+
+
+
+```bash
+powercfg -h off
+powercfg -h on
+```
+

@@ -1,0 +1,115 @@
+---
+date: "2019-01-12"
+title: "Ubuntu Network Configuration"
+categories:
+  - LINUX
+---
+
+![Battambang, Cambodia](./photo-19196703263_69f9f0df5f_o.jpg)
+
+
+<!-- TOC -->
+
+- [Change DNS Server Manually](#change-dns-server-manually)
+- [DNS Settings using the NetworkManager](#dns-settings-using-the-networkmanager)
+- [Default gateway on CentOS](#default-gateway-on-centos)
+
+<!-- /TOC -->
+
+
+
+## Check your network settings
+
+```bash
+ip a
+2: enp3s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 74:d4:35:c7:c2:20 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.2.53/24 brd 192.168.2.255 scope global enp3s0
+       valid_lft forever preferred_lft forever
+```
+
+
+The current IP address for the Ethernet interface is `192.168.2.53`. And the gateway is `192.168.2.1` as seen below:
+
+
+```bash
+ip route
+default via 192.168.2.1 dev enp3s0 proto static 
+```
+
+
+## Configure Netplan
+
+
+```bash
+ls /etc/netplan/
+00-installer-config.yaml
+
+sudo nano /etc/netplan/00-installer-config.yaml
+```
+
+Delete / overwrite the configuration inside this file, e.g. :
+
+
+```bash
+# This is the network config written by 'subiquity'
+network:
+  ethernets:
+    enp3s0:
+      addresses:
+        - 192.168.2.110/24
+      gateway4: 192.168.2.5
+      nameservers:
+        addresses:
+          - 192.168.2.5
+          - 8.8.4.4
+        search:
+          - workgroup
+  version: 2
+```
+
+
+### Test and Apply your Settings
+
+
+```bash
+sudo netplan try
+Warning: Stopping systemd-networkd.service, but it can still be activated by:
+  systemd-networkd.socket
+Do you want to keep these settings?
+
+Press ENTER before the timeout to accept the new configuration
+
+Changes will revert in 107 seconds
+Configuration accepted.
+```
+
+
+If there is no issue, it will return the configuration accepted message. If the configuration file fails the test, it will be reverted to a previous working configuration.
+
+
+
+```bash
+sudo netplan apply
+
+
+```
+
+
+Verify your changes:
+
+
+
+```bash
+ip a
+2: enp3s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 74:d4:35:c7:c2:20 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.2.110/24 brd 192.168.2.255 scope global enp3s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::76d4:35ff:fec7:c220/64 scope link 
+       valid_lft forever preferred_lft forever
+
+
+ip route
+default via 192.168.2.5 dev enp3s0 proto static 
+```
