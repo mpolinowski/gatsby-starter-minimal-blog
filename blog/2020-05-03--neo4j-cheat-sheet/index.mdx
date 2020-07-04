@@ -1,0 +1,685 @@
+---
+date: "2020-05-03"
+title: "Neo4j Cypher Cheat Sheet"
+categories:
+  - Databases
+
+---
+
+![Maritime Museum, Hong Kong](./photo-kt443t6d_64hdh43hfh6dgjdfhg4_d.jpg)
+
+
+<!-- TOC -->
+
+- [Cypher Fundamentals](#cypher-fundamentals)
+- [Browser editor](#browser-editor)
+    - [CLI](#cli)
+- [Match](#match)
+    - [Match node](#match-node)
+    - [Match nodes and relationships](#match-nodes-and-relationships)
+    - [Match labels](#match-labels)
+    - [Match multiple labels](#match-multiple-labels)
+    - [Match same properties](#match-same-properties)
+    - [Match friends of friends with same hobbies](#match-friends-of-friends-with-same-hobbies)
+    - [Match by ID](#match-by-id)
+- [Create](#create)
+    - [Create node](#create-node)
+    - [Create nodes and relationships](#create-nodes-and-relationships)
+    - [Create relationship between 2 unrelated nodes](#create-relationship-between-2-unrelated-nodes)
+    - [Create node with multiple labels](#create-node-with-multiple-labels)
+- [Update](#update)
+    - [Update node properties (add new or modify)](#update-node-properties-add-new-or-modify)
+    - [Replace all node properties for the new ones](#replace-all-node-properties-for-the-new-ones)
+    - [Add new node properties without deleting old ones](#add-new-node-properties-without-deleting-old-ones)
+    - [Add new node property if property not already set](#add-new-node-property-if-property-not-already-set)
+    - [Rename a property in all nodes](#rename-a-property-in-all-nodes)
+    - [Add label to existing node](#add-label-to-existing-node)
+    - [Creates the node if not exists and updates (or creates) a property](#creates-the-node-if-not-exists-and-updates-or-creates-a-property)
+- [Delete](#delete)
+    - [Delete nodes](#delete-nodes)
+    - [Deletes a property in a specific node](#deletes-a-property-in-a-specific-node)
+    - [Delete a label from all nodes](#delete-a-label-from-all-nodes)
+    - [Delete a label from nodes with specific labels](#delete-a-label-from-nodes-with-specific-labels)
+    - [Delete multiple labels from nodes](#delete-multiple-labels-from-nodes)
+    - [Delete entire database](#delete-entire-database)
+- [Other clauses](#other-clauses)
+    - [Show execution plan](#show-execution-plan)
+    - [Count](#count)
+    - [Limit](#limit)
+    - [Create unique property constraint](#create-unique-property-constraint)
+    - [Drop unique property constraint](#drop-unique-property-constraint)
+- [Useful Cypher Queries for Neo4J](#useful-cypher-queries-for-neo4j)
+
+<!-- /TOC -->
+
+
+## Cypher Fundamentals
+
+Store any kind of data using the following graph concepts:
+
+* **Node**: Graph data records
+* **Relationship**: Connect nodes (has direction and a type)
+* **Property**: Stores data in key-value pair in nodes and relationships
+* **Label**: Groups nodes and relationships (optional)
+
+---
+
+## Browser editor
+
+### CLI
+
+Examples: `:help` `:clear`
+
+---
+
+## Match
+
+### Match node
+
+```bash
+MATCH (ee:Person)
+WHERE ee.name = "Romeo"
+RETURN ee;
+```
+
+* **MATCH** clause to specify a pattern of nodes and relationships
+* **(ee:Person)** a single node pattern with label 'Person' which will assign matches to the variable `ee`
+* **WHERE** clause to constrain the results
+* **ee.name = "Romeo"** compares name property to the value "Romeo"
+* **RETURN** clause used to request particular results
+
+Gets gets the id 5  and id 0  nodes and creates a `:KNOWS` relationship between them
+
+### Match nodes and relationships
+
+```bash
+MATCH (ee:Person)-[:KNOWS]-(friends)
+WHERE ee.name = "Romeo"
+RETURN ee, friends
+```
+
+* **MATCH** clause to describe the pattern from known Nodes to found Nodes
+* **(ee)** starts the pattern with a Person (qualified by WHERE)
+* **-[:KNOWS]-** matches "KNOWS" relationships (in either direction)
+* **(friends)** will be bound to Romeo's friends
+
+### Match labels
+
+```bash
+MATCH (n:Person)
+RETURN n
+```
+
+or
+
+```bash
+MATCH (n)
+WHERE n:Person
+RETURN n
+```
+
+### Match multiple labels
+
+`:Car` **OR** `:Person` labels
+
+```bash
+MATCH (n)
+WHERE n:Person OR n:Car
+RETURN n
+```
+
+`:Car` **AND** `:Person` labels
+
+```bash
+MATCH (n)
+WHERE n:Person:Car
+RETURN n
+```
+
+### Match same properties
+
+```bash
+MATCH (a:Person)
+WHERE a.from = "Korea"
+RETURN a
+```
+
+Returns every node (and their relationships) where there's a property `from` with "Korea" value
+
+### Match friends of friends with same hobbies
+
+Johan is learning surfing, and wants to know any friend of his friends who already knows surfing
+
+```bash
+MATCH (js:Person)-[:KNOWS]-()-[:KNOWS]-(surfer)
+WHERE js.name = "Johan" AND surfer.hobby = "surfing"
+RETURN DISTINCT surfer
+```
+
+* **()** empty parenthesis to ignore these nodes
+* **DISTINCT** because more than one path will match the pattern
+* **surfer** will contain Allison, a friend of a friend who surfs
+
+### Match by ID
+
+Every node and relationship has an internal autonumeric ID, which can be queried using ** **, ** =**, **=**, **= **, **  ** and **IN** operators:
+
+**Search node by ID**
+
+```bash
+MATCH (n)
+WHERE id(n) = 0
+RETURN n
+```
+
+**Search multiple nodes by ID**
+
+```bash
+MATCH (n)
+WHERE id(n) IN [1, 2, 3]
+RETURN n
+```
+
+**Search relationship by ID**
+
+```bash
+MATCH ()-[n]-()
+WHERE id(n) = 0
+RETURN n
+```
+
+---
+
+## Create
+
+### Create node
+
+```bash
+CREATE (ee:Person { name: "Romeo", from: "Korea", klout: 99 })
+```
+
+* **CREATE** clause to create data
+* **()** parenthesis to indicate a node
+* **ee:Person** a variable `ee` and label `Person` for the new node
+* **{}** brackets to add properties (key-value pairs) to the node
+
+### Create nodes and relationships
+
+```bash
+MATCH (ee:Person) WHERE ee.name = "Romeo"
+CREATE (js:Person { name: "Johan", from: "Korea", learn: "surfing" }),
+(ir:Person { name: "Ian", from: "England", title: "author" }),
+(rvb:Person { name: "Rik", from: "Belgium", pet: "Orval" }),
+(ally:Person { name: "Allison", from: "California", hobby: "surfing" }),
+(ee)-[:KNOWS {since: 2001}]- (js),(ee)-[:KNOWS {rating: 5}]- (ir),
+(js)-[:KNOWS]- (ir),(js)-[:KNOWS]- (rvb),
+(ir)-[:KNOWS]- (js),(ir)-[:KNOWS]- (ally),
+(rvb)-[:KNOWS]- (ally)
+```
+
+* **MATCH** clause to get "Romeo" in `ee` variable
+* **CREATE** clause to create multiple nodes (comma separated) with their labels and properties. Also creates directed relationships `(a)-[:Label {key: value}]- (b)`
+
+### Create relationship between 2 unrelated nodes
+
+```bash
+MATCH (n), (m)
+WHERE n.name = "Allison" AND m.name = "Romeo"
+CREATE (n)-[:KNOWS]- (m)
+```
+
+Alternative with `MERGE`, which ensures that the relationship is created only **once**
+
+```bash
+MATCH (n:User {name: "Allison"}), (m:User {name: "Romeo"})
+MERGE (n)-[:KNOWS]- (m)
+```
+
+### Create node with multiple labels
+
+```bash
+CREATE (n:Actor:Director)
+```
+
+---
+
+## Update
+
+### Update node properties (add new or modify)
+
+Add new `.owns` property or modify (if exists)
+
+```bash
+MATCH (n)
+WHERE n.name = "Rik"
+SET n.owns = "Audi"
+```
+
+### Replace all node properties for the new ones
+
+**Danger**: It will delete all previous properties and create `.plays` and `.age` properties
+
+```bash
+MATCH (n)
+WHERE n.name = "Rik"
+SET n = {plays: "Piano", age: 23}
+```
+
+### Add new node properties without deleting old ones
+
+**Danger**: If `.plays` or `.age` properties are already set, it will overwrite them
+
+```bash
+MATCH (n)
+WHERE n.name = "Rik"
+SET n += {plays: "Piano", age: 23}
+```
+
+### Add new node property if property not already set
+
+```bash
+MATCH (n)
+WHERE n.plays = "Guitar" AND NOT (EXISTS (n.likes))
+SET n.likes = "Movies"
+```
+
+### Rename a property in all nodes
+
+```bash
+MATCH (n)
+WHERE NOT (EXISTS (n.instrument))
+SET n.instrument = n.plays
+REMOVE n.plays
+```
+
+Alternative
+
+```bash
+MATCH (n)
+WHERE n.instrument is null
+SET n.instrument = n.plays
+REMOVE n.plays
+```
+
+### Add label to existing node
+
+Adds the `:Food` label to nodes id 7  and id 8 
+
+```bash
+MATCH (n)
+WHERE id(n) IN [7, 8]
+SET n:Food
+```
+
+### Creates the node if not exists and updates (or creates) a property
+
+```bash
+MERGE (n:Person {name: "Rik"})
+SET n.owns = "Audi"
+```
+
+---
+
+## Delete
+
+### Delete nodes
+
+To **delete a node** (p.e. id 5 ), first we need to **delete its relationships**. Then, the node can be deleted
+
+```bash
+MATCH (n)-[r]-()
+WHERE id(n) = 5
+DELETE r, n
+```
+
+To **delete multiple nodes** (must have their relationships previously deleted)
+
+```bash
+MATCH (n)
+WHERE id(n) IN [1, 2, 3]
+DELETE n
+```
+
+
+### Deletes a property in a specific node
+
+```bash
+MATCH (n)
+WHERE n:Person AND n.name = "Rik" AND n.plays is NOT null
+REMOVE n.plays
+```
+
+Alternative
+
+```bash
+MATCH (n)
+WHERE n:Person AND n.name = "Rik" AND EXISTS (n.plays)
+REMOVE n.plays
+```
+
+
+### Delete a label from all nodes
+
+Deletes the `:Person` label from **all** nodes
+
+```bash
+MATCH (n)
+REMOVE n:Person
+```
+
+### Delete a label from nodes with specific labels
+
+Deletes the `:Person` label from nodes with `:Food` and `:Person` labels
+
+```bash
+MATCH (n)
+WHERE n:Food:Person
+REMOVE n:Person
+```
+
+### Delete multiple labels from nodes
+
+Deletes the `:Food` and `:Person` labels from nodes which have **both** labels
+
+```bash
+MATCH (n)
+WHERE n:Food:Person
+REMOVE n:Food:Person
+```
+
+**Danger**: Deletes the `:Food` and `:Person` labels from nodes which have `:Food` or `:Person` or `:Food:Person` labels
+
+```bash
+MATCH (n)
+REMOVE n:Food:Person
+```
+
+### Delete entire database
+
+```bash
+MATCH (n)
+OPTIONAL MATCH (n)-[r]-()
+DELETE n, r
+```
+
+---
+
+## Other clauses
+
+### Show execution plan
+
+Use `PROFILE` or `EXPLAIN` before the query
+
+`PROFILE`: Shows the execution plan, query information and **db hits**. Example: Cypher version: CYPHER 3.0, planner: COST, runtime: INTERPRETED. 84 total db hits in 32 ms.
+
+`EXPLAIN`: Shows the execution plan and query information. Example: Cypher version: CYPHER 3.0, planner: COST, runtime: INTERPRETED.
+
+### Count
+
+Count all nodes
+
+```bash
+MATCH (n)
+RETURN count(n)
+```
+
+Count all relationships
+
+```bash
+MATCH ()-- ()
+RETURN count(*);
+```
+
+### Limit
+
+Returns up to 2 nodes (and their relationships) where there's a property `from` with "Korea" value
+
+```bash
+MATCH (a:Person)
+WHERE a.from = "Korea"
+RETURN a
+LIMIT 2
+```
+
+### Create unique property constraint
+
+Make `.name` property unique on nodes with `:Person` label
+
+```bash
+CREATE CONSTRAINT ON (n:Person)
+ASSERT n.name IS UNIQUE
+```
+
+### Drop unique property constraint
+
+Make `.name` property unique on nodes with `:Person` label
+
+```bash
+DROP CONSTRAINT ON (n:Person)
+ASSERT n.name IS UNIQUE
+```## Useful Cypher Queries for Neo4J
+
+
+Find the unique labels that appear in the database:
+
+```bash
+match n
+return distinct labels(n)
+```
+
+ 
+
+Find the unique relationships that appear in the database:
+
+
+```bash
+match n-[r]-()
+return distinct type(r)
+```
+
+ 
+
+Combine the previous two queries to return the unique combinations relationships and labels in the database:
+
+
+```bash
+match n-[r]-()
+return distinct labels(n), type(r)
+```
+
+ 
+
+Find nodes that don't have any relationships:
+
+
+```bash
+start n=node(*)
+match n-[r?]-()
+where r is null
+return n
+```
+
+ 
+
+Find all nodes that have a specific property:
+
+
+
+```bash
+start n=node(*)
+match n
+where has(n.someProperty)
+return n
+```
+
+ 
+
+Find all nodes that have a specific relationship (regardless of the direction of the relationship):
+
+
+```bash
+start n=node(*)
+match n-[:SOME_RELATIONSHIP]-()
+return distinct n
+```
+
+ 
+
+Show the nodes and a count of the number of relationships that they have:
+
+
+
+```bash
+start n=node(*)
+match n-[r]-()
+return n, count(r) as rel_count
+order by rel_count desc
+```
+
+ 
+
+Get a count of all nodes in your graph:
+
+
+```bash
+start n=node(*)
+match n
+return count(n)
+```
+
+
+To delete all nodes in a database (first you have to delete all relationships)
+
+
+
+```bash
+start n=node(*)
+match n-[r]-()
+delete r
+
+start n=node(*)
+match n
+delete n
+```
+ 
+
+A simple query to get nodes of a certain category that match a certain property
+
+
+```bash
+match (n:Person) where n.name="Tim" return n
+```
+
+
+## Useful Cypher Queries for Neo4J
+
+
+Find the unique labels that appear in the database:
+
+```bash
+match n
+return distinct labels(n)
+```
+
+ 
+
+Find the unique relationships that appear in the database:
+
+
+```bash
+match n-[r]-()
+return distinct type(r)
+```
+
+ 
+
+Combine the previous two queries to return the unique combinations relationships and labels in the database:
+
+
+```bash
+match n-[r]-()
+return distinct labels(n), type(r)
+```
+
+ 
+
+Find nodes that don't have any relationships:
+
+
+```bash
+start n=node(*)
+match n-[r?]-()
+where r is null
+return n
+```
+
+ 
+
+Find all nodes that have a specific property:
+
+
+
+```bash
+start n=node(*)
+match n
+where has(n.someProperty)
+return n
+```
+
+ 
+
+Find all nodes that have a specific relationship (regardless of the direction of the relationship):
+
+
+```bash
+start n=node(*)
+match n-[:SOME_RELATIONSHIP]-()
+return distinct n
+```
+
+ 
+
+Show the nodes and a count of the number of relationships that they have:
+
+
+
+```bash
+start n=node(*)
+match n-[r]-()
+return n, count(r) as rel_count
+order by rel_count desc
+```
+
+ 
+
+Get a count of all nodes in your graph:
+
+
+```bash
+start n=node(*)
+match n
+return count(n)
+```
+
+
+To delete all nodes in a database (first you have to delete all relationships)
+
+
+
+```bash
+start n=node(*)
+match n-[r]-()
+delete r
+
+start n=node(*)
+match n
+delete n
+```
+ 
+
+A simple query to get nodes of a certain category that match a certain property
+
+
+```bash
+match (n:Person) where n.name="Tim" return n
+```

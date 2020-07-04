@@ -150,11 +150,45 @@ podman run \
         openhab/openhab:latest
 ```
 
+#### OpenHAB CLI
 
 ```bash
-podman start openhab
-podman stop openhab
+docker exec -it openhab
+/openhab/runtime/bin/client -p habopen
 ```
+
+
+#### Updating the Image
+
+Use the following steps to update the docker image and all installed add-ons.
+
+Stop the container:
+
+```bash
+docker stop openhab
+```
+
+Delete the container:
+
+```bash
+docker rm openhab
+```
+
+Delete the contents of `/opt/openhab/userdata/cache` and `/opt/openhab/userdata/tmp`
+
+
+```bash
+rm -rf /opt/openhab/userdata/cache
+rm -rf /opt/openhab/userdata/tmp`
+```
+
+Pull down the latest image:
+
+```bash
+docker pull openhab/openhab:`latest`
+```
+
+Restart the container using the full command above.
 
 
 

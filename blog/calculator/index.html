@@ -1,0 +1,80 @@
+<html>
+    <head>
+        <title>Calculator</title>
+
+        <style>
+            .calculator {
+                width: 350px;
+                }
+            .result {
+                width: 100%;
+                height: 50px;
+                font-size: 130%;
+                padding: 1%;
+            }
+            .button {
+                float: left;
+                height: 50px;
+                width: 33.33%;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    <body>
+
+        <div class="calculator">
+            <h1>Calculator</h1>
+            <input type="text" id="result" class="result">
+
+            <button class="button" onclick="clearText()">AC</button>
+            <button class="button" onclick="appendForCalculation(' % ')">%</button>
+            <button class="button" onclick="appendForCalculation(' / ')">/</button>
+            
+            <button class="button" onclick="appendForCalculation(' * ')">*</button>
+            <button class="button" onclick="appendForCalculation(' + ')">+</button>
+            <button class="button" onclick="appendForCalculation(' - ')">-</button>
+            
+            <button class="button" onclick="appendForCalculation('7')">7</button>
+            <button class="button" onclick="appendForCalculation('8')">8</button>
+            <button class="button" onclick="appendForCalculation('9')">9</button>
+            
+            <button class="button" onclick="appendForCalculation('4')">4</button>
+            <button class="button" onclick="appendForCalculation('5')">5</button>
+            <button class="button" onclick="appendForCalculation('6')">6</button>
+            
+            <button class="button" onclick="appendForCalculation('3')">3</button>
+            <button class="button" onclick="appendForCalculation('2')">2</button>
+            <button class="button" onclick="appendForCalculation('1')">1</button>
+            
+            <button class="button" onclick="appendForCalculation('.')">.</button>
+            <button class="button" onclick="appendForCalculation('0')">0</button>
+            <button class="button" onclick="calculate()">=</button>
+        </div>
+
+        <script>
+            const textField = document.getElementById('result');
+
+            let garbageCollection = false;
+
+            function appendForCalculation(symbol) {
+
+                if(garbageCollection){
+                    clearText();
+                    garbageCollection = false;
+                }
+
+                textField.value=textField.value + symbol;
+            }
+
+            function calculate() {
+                textField.value += ' = ' + eval(textField.value);
+                garbageCollection = true;
+            }
+
+            function clearText() {
+                textField.value = '';
+            } 
+        </script>
+
+    </body>
+</html>
