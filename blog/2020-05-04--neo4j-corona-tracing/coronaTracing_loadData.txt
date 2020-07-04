@@ -1,0 +1,9 @@
+LOAD CSV WITH HEADERS FROM "file:///coronaTracing.csv" AS line
+WITH line
+MERGE (Infected:Person{name:line.Infected, Addr:line.InfectedAddress})
+MERGE (Contact:Person{name:line.Contact, Addr:line.ContactAddress})
+MERGE (Infected)-[info:Info{
+`Contact Info`:line.ContactInfo, 
+`Relationship`:line.`Relationship`, 
+Location: CASE WHEN line.Geography IS NOT NULL THEN line.Geography ELSE '' END
+}]->(Contact)

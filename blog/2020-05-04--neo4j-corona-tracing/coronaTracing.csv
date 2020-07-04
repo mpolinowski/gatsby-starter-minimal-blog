@@ -1,0 +1,65 @@
+ContactInfo,,,Infected,,InfectedAddress,,Contact,Relationship,,ContactAddress,,,Spread,Geography
+Fitness Studio,,,PersonA,,CordonA,,PersonB,Coworker,,CordonB,,,,New Territories
+Fitness Studio,,,PersonB,,CordonB,,PersonV,Brother,,CordonB,,,,New Territories
+Metro System,,,PersonC,,CordonC,,PersonQ,Sister,,CordonE,,,1,Island District
+Metro System,,,PersonD,,CordonD,,PersonAK,Wife,,CordonG,,,,Central Island
+Workplace,,,PersonC,,CordonC,,PersonAL,Wife,,CordonC,,,1,Central Island
+Workplace,,,PersonA,,CordonA,,PersonAL,Wife,,CordonC,,,1,Central Island
+Workplace,,,PersonE,,CordonE,,PersonAM,Sister,,CordonE,,,1,Central Island
+Restaurant,,,PersonF,,CordonF,,PersonO,Coworker,,CordonD,,,0,Old District
+Workplace,,,PersonA,,CordonA,,PersonAK,Coworker,,CordonG,,,0,Old District
+Metro System,,,PersonB,,CordonB,,PersonV,Brother,,CordonB,,,1,New Territories
+Restaurant,,,PersonF,,CordonF,,PersonAN,Coworker,,CordonE,,,1,Central Island
+Workplace,,,PersonG,,CordonB,,PersonV,Coworker,,CordonB,,,0,New Territories
+Metro System,,,PersonG,,CordonB,,PersonA,Coworker,,CordonA,,,,New Territories
+BarORClub,,,PersonD,,CordonD,,PersonAK,Wife,,CordonG,,,1,Central Island
+Workplace,,,PersonH,,CordonD,,PersonAN,Unknown,,CordonE,,,<100,Central Island
+Metro System,,,PersonA,,CordonA,,PersonAN,Unknown,,CordonE,,,<100,Central Island
+Metro System,,,PersonI,,CordonA,,PersonV,Coworker,,CordonB,,,2,New Territories
+BarORClub,,,PersonJ,,CordonE,,PersonH,Unknown,,CordonD,,,<100,New Town
+Restaurant,,,PersonK,,CordonG,,PersonR,Coworker,,CordonG,,,1,New Town
+Workplace,,,PersonL,,CordonG,,PersonN,Brother,,CordonG,,,,Unknown
+Metro System,,,PersonM,,CordonH,,PersonJ,Coworker,,CordonE,,,>100,Island District
+MallORSupermarket,,,PersonN,,CordonG,,PersonL,Brother,,CordonG,,,<10,New Town
+Workplace,,,PersonO,,CordonD,,PersonD,Brother,,CordonD,,,0,Old District
+MallORSupermarket,,,PersonP,,CordonI,,PersonV,Coworker,,CordonB,,,Dozens?,New Town
+Restaurant,,,PersonQ,,CordonE,,PersonJ,Mother,,CordonE,,,0,New Town
+Metro System,,,PersonR,,CordonG,,PersonN,Coworker,,CordonG,,,<100,Old District
+BarORClub,,,PersonS,,CordonA,,PersonH,Coworker,,CordonD,,,0,Old District
+MallORSupermarket,,,PersonT,,CordonA,,PersonO,Coworker,,CordonD,,,1,Old District
+Restaurant,,,PersonJ,,CordonE,,PersonAO,Coworker,,CordonL,,,1,New Town
+Workplace,,,PersonU,,CordonG,,PersonR,Coworker,,CordonG,,,0,New Town
+Metro System,,,PersonV,,CordonJ,,PersonAP,Coworker,,CordonO,,,1,Badlands
+BarORClub,,,PersonW,,CordonJ,,PersonAQ,Coworker,,CordonJ,,,0,Badlands
+Restaurant,,,PersonV,,CordonB,,PersonAR,Coworker,,CordonA,,,1,New Territories
+BarORClub,,,PersonJ,,CordonE,,PersonAS,Coworker,,CordonP,,,4,New Town
+MallORSupermarket,,,PersonD,,CordonD,,PersonAT,Coworker,,CordonM,,,0,New Town
+Metro System,,,PersonF,,CordonF,,PersonAU,Unknown,,CordonF,,,1,Central Island
+Metro System,,,PersonF,,CordonF,,PersonA,Coworker,,CordonA,,,1,Central Island
+MallORSupermarket,,,PersonY,,CordonD,,PersonD,Father,,CordonD,,,,
+MallORSupermarket,,,PersonZ,,CordonK,,PersonJ,Coworker,,CordonE,,,20+,New Town
+MallORSupermarket,,,PersonAA,,CordonL,,PersonJ,Coworker,,CordonE,,,20+,New Town
+Metro System,,,PersonAB,,CordonE,,PersonAV,Lover,,CordonQ,,,2,New Town
+Metro System,,,PersonF,,CordonF,,PersonH,Coworker,,CordonD,,,1,New Town
+Workplace,,,PersonAC,,CordonM,,PersonH,Coworker,,CordonD,,,1,New Town
+Workplace,,,PersonAD,,CordonA,,PersonAH,Coworker,,CordonA,,,>100,New Territories
+Workplace,,,PersonD,,CordonD,,PersonO,Sister,,CordonD,,,0,New Town
+Restaurant,,,PersonAE,,CordonA,,PersonO,Lover,,CordonD,,,0,New Town
+Restaurant,,,PersonA,,CordonA,,PersonO,Coworker,,CordonD,,,0,New Town
+MallORSupermarket,,,PersonM,,CordonH,,PersonAW,Coworker,,CordonH,,,>100,Badlands
+BarORClub,,,PersonF,,CordonF,,PersonC,Friend,,CordonC,,,1,The Vale
+Restaurant,,,PersonE,,CordonE,,PersonC,Niece,,CordonC,,,,The Vale
+Metro System,,,PersonAF,,CordonD,,PersonD,Sister/Lover,,CordonD,,,,
+Metro System,,,PersonA,,CordonA,,PersonD,Sister/Lover,,CordonD,,,,
+BarORClub,,,PersonY,,CordonD,,PersonO,Father,,CordonD,,,,
+Workplace,,,PersonO,,CordonD,,PersonY,Son,,CordonD,,,1,7 Kingdoms
+Restaurant,,,PersonD,,CordonD,,PersonAC,Coworker,,CordonM,,,,
+BarORClub,,,PersonAG,,CordonN,,PersonD,Coworker,,CordonD,,,,
+Workplace,,,PersonO,,CordonD,,PersonD,Brother,,CordonD,,,0,New Territories
+Restaurant,,,PersonN,,CordonG,,PersonAX,Father,,CordonG,,,1,Island District
+Workplace,,,PersonAH,,CordonA,,PersonV,Coworker,,CordonB,,,,
+BarORClub,,,PersonAI,,CordonJ,,PersonAB,Coworker,,CordonE,,,1,The Wall
+Metro System,,,PersonM,,CordonH,,PersonAY,Unknown,,CordonK,,,,Island District
+Restaurant,,,PersonAJ,,CordonO,,PersonAZ,Coworker,,CordonD,,,1,
+Workplace,,,PersonA,,CordonA,,PersonD,Coworker,,CordonD,,,,
+Metro System,,,PersonR,,CordonG,,PersonN,Coworker,,CordonG,,,,
