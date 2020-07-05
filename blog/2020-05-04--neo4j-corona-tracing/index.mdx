@@ -36,7 +36,7 @@ Then run it from your Terminal `./neo4j-desktop-offline-1.2.9-x86_64.AppImage`.
 1. Click on __New Project__, create the database and click on __Manage__ to set it up.
 
 
-![Neo4j Desktop Application](./Neo4j_Corona_Tracing_Tracing_01.png)
+![Neo4j Desktop Application](./Neo4j_Corona_Tracing_01.png)
 
 
 2. Click on __Open Folder__, enter the __import__ directory.
@@ -77,9 +77,12 @@ Location: CASE WHEN line.Geography IS NOT NULL THEN line.Geography ELSE '' END
 ```
 
 
+![Neo4j Desktop Application](./Neo4j_Corona_Tracing_05.png)
+
+
 ## Working with your Data
 
-1. How many potential infections (query for relationship `Info` = event with the potential of an infection)?
+1. How many potential infections (query for relationship `Info` = event with the potential of an infection) ?
 
 
 ```bash
@@ -87,7 +90,7 @@ MATCH (person:Person)-[rel:Info]->(:Person)
 RETURN COUNT (rel)
 ```
 
-2. How many persons have been traced from `Cordon M`?
+2. How many persons have been traced from `Cordon M` ?
 
 
 ```bash
@@ -97,21 +100,21 @@ RETURN person
 ```
 
 
-3. How many infected persons has `Person A` been in contact with?
+3. How many infected persons has `Person A` been in contact with ?
 
 ```bash
 MATCH (carrier)-[r:Info]->(person:Person{name:'PersonA'})
 RETURN carrier, person, r
 ```
 
-4. How many were potentially infected by `Person J`
+4. How many were potentially infected by `Person J` ?
 
 ```bash
 MATCH (carrier:Person{name:'PersonJ'})-[r:Info]->(person:Person)
 RETURN COUNT (person) AS Infected
 ```
 
-4.1. Omit double-count:
+4.1. Omit potential double-count:
 
 
 ```bash
@@ -157,7 +160,7 @@ LIMIT 1
 ```
 
 
-8. What carriers had contact with the person who was exposed the most:
+8. What carriers had contact with the person who was exposed the most ?
 
 
 ```bash
@@ -169,7 +172,7 @@ MATCH (person:Person)<-[r]-(p)
 RETURN person, r, p
 ```
 
-9. Who in `Cordon A` did not infect anyone:
+9. Who in `Cordon A` did not infect anyone ?
 
 ```bash
 MATCH (a)
@@ -193,7 +196,7 @@ RETURN p,r,carrier
 ```
 
 
-11. Path of infection between `Person K` and `Person L`
+11. Show the path of the infection between `Person K` and `Person L`
 
 
 ```bash

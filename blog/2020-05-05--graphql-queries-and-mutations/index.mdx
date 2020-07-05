@@ -1,0 +1,274 @@
+---
+date: "2020-05-05"
+title: "GraphQL Queries and Mutations"
+categories:
+  - Databases
+  - Javascript
+
+---
+
+![Kathmandu, Nepal](./photo-kt443t6d_64hdh43hfh6dgjdfhg4_d.jpg)
+
+
+<!-- TOC -->
+
+- [GraphQL Queries](#graphql-queries)
+    - [Standard Query](#standard-query)
+    - [Aliases](#aliases)
+    - [Fragments](#fragments)
+    - [Variables](#variables)
+    - [Mutations](#mutations)
+    - [Mutations with Variables](#mutations-with-variables)
+
+<!-- /TOC -->
+
+
+
+## GraphQL Queries
+
+### Standard Query
+
+Use the standard query to get all __Posts__ out of your database:
+
+1. Query:
+
+```json
+query{
+  posts{
+    title
+    author{
+      name
+    }
+  }
+}
+```
+
+2. Response:
+
+```json
+"data": {
+  "posts": [
+    {
+      "title": "First Post",
+      "author": {
+        "name": "Author Name"
+      }
+    },
+    {
+      "title": "Second Post",
+      "author": {
+        "name": "Author Name"
+      }
+    },
+    {
+      "title": "Third Post",
+      "author": {
+        "name": "Author Name"
+      }
+    }
+  ]
+}
+```
+
+
+### Aliases
+
+Use aliases to query for multiple separate posts:
+
+1. Query:
+
+```json
+query{
+  firstquery: post(id:2){
+    title
+    author{
+      name
+    }
+  }
+  secondquery: post(id:3){
+    title
+    author{
+      name
+    }
+  }
+}
+```
+
+2. Response:
+
+```json
+"data": {
+  "firstquery": {
+    "title": "Second Post",
+    "author": {
+      "name": "Author Name"
+    }
+  },
+  "secondquery": {
+    "title": "Third Post",
+    "author": {
+      "name": "Author Name"
+    }
+  }
+}
+```
+
+
+### Fragments
+
+Use fragments to shorten your queries:
+
+1. Query:
+
+```json
+query{
+  firstquery: post(id:2){
+    ...basicPostDetails
+  }
+  secondquery: post(id:3){
+    ...basicPostDetails
+  }
+}
+
+fragment basicPostDetails on Post{
+    title
+    author{
+      name
+    }
+}
+```
+
+2. Response:
+
+```json
+"data": {
+  "firstquery": {
+    "title": "Second Post",
+    "author": {
+      "name": "Author Name"
+    }
+  },
+  "secondquery": {
+    "title": "Third Post",
+    "author": {
+      "name": "Author Name"
+    }
+  }
+}
+```
+
+
+### Variables
+
+Use fragments to shorten your queries - the query variable has to be send alongside, e.g. user clicked on post number two -> `{"postID": 2}`:
+
+1. Query:
+
+```json
+query($postId: Int!) {
+  post(id:$postId){
+    ...basicPostDetails
+  }
+}
+
+fragment basicPostDetails on Post{
+    title
+    author{
+      name
+    }
+}
+```
+
+2. Response:
+
+```json
+{
+  "data": {
+    "post": {
+        "title": "Second Post",
+        "author": {
+          "name": "Author Name"
+        }
+      }
+    }
+}
+```
+
+
+### Mutations
+
+Queries retrieve data from your database. A mutation can be used to make changes to your data - e.g. add a post:
+
+1. Query:
+
+```json
+mutation {
+  addPost( post: {
+    title: "New Post",
+    content: "Post content",
+    author: "sd35xzdfg"
+  }){
+    title,
+    author: {
+      name
+    }
+  }
+}
+```
+
+2. Response:
+
+```json
+{
+  "data": {
+    "post": {
+        "title": "New Post",
+        "author": {
+          "name": "Author Name"
+        }
+      }
+    }
+}
+```
+
+
+### Mutations with Variables
+
+With a variable the new post data has to be passed along as a javascript object, e.g.:
+
+```json
+{"post": {
+    "title": "New Post",
+    "content": "Post content",
+    "author": "sd35xzdfg"
+  }
+}
+```
+
+1. Query:
+
+```json
+mutation ($post: PostInput!) {
+  addPost( post: $post){
+    title,
+    author: {
+      name
+    }
+  }
+}
+```
+
+2. Response:
+
+```json
+{
+  "data": {
+    "post": {
+        "title": "New Post",
+        "author": {
+          "name": "Author Name"
+        }
+      }
+    }
+}
+```
