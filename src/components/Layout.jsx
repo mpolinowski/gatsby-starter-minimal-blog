@@ -154,15 +154,19 @@ const GlobalStyle = createGlobalStyle`
     border-collapse: collapse;
     background-color: ${props => props.theme.colors.bg};
   }
+  tr:nth-child(even) {
+    background: #000300;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px;
+  }
   caption {
     padding-top: 1.5rem;
     padding-bottom: 1.5rem;
     color: ${props => props.theme.colors.color};
     text-align: center;
     caption-side: bottom;
-  }
-  th {
-    text-align: left;
   }
   fieldset {
     min-width: 0;
