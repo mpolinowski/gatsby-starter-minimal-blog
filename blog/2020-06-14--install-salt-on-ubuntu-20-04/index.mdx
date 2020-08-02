@@ -1,0 +1,184 @@
+---
+date: "2020-06-14"
+title: "Install Salt on Ubuntu Server 20.04"
+categories:
+  - LINUX
+  - Docker
+
+---
+
+![Battambang, Cambodiaa](./photo-kt443t6d_64hdh43hfh6dgjdfhg4_d.jpg)
+
+
+<!-- TOC -->
+
+- [Install Salt](#install-salt)
+    - [Python 3.7 on Ubuntu 20.04](#python-37-on-ubuntu-2004)
+    - [Salt Bootstrap](#salt-bootstrap)
+    - [Network Addressing](#network-addressing)
+    - [Authenticate Minions](#authenticate-minions)
+- [Test Connection](#test-connection)
+
+<!-- /TOC -->
+
+
+## Install Salt 
+
+### Python 3.7 on Ubuntu 20.04
+
+If this is still an issue (Salt not supporting Python 3.8) - install the older version from [deadsnakes PPA](https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa):
+
+
+```bash
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt-get update
+sudo apt-get install python3.7
+```
+
+### Salt Bootstrap
+
+[Salt Bootstrap](https://repo.saltstack.com/#bootstrap) is a configuration script which automatically detects the operating system it’s running on, sets the correct repositories, and installs Salt. The install script is intended to be run on the Salt master and all minion machines.
+
+
+__Salt Master__
+
+
+```bash
+curl -L https://bootstrap.saltstack.com -o install_salt.sh
+sudo sh install_salt.sh -P -M -N
+```
+
+
+__Salt Minion__
+
+
+```bash
+curl -L https://bootstrap.saltstack.com -o install_salt.sh
+sudo sh install_salt.sh -P
+```
+
+### Network Addressing
+
+
+__Salt Master__
+
+Uncomment the #interface: line near the top of the `/etc/salt/master` file and replace the address placeholder with the address of your Salt master’s IP. If all your nodes are located in the same data center, you can use the private IP address.
+
+
+```bash
+# The address of the interface to bind to:
+interface: 192.168.2.110
+```
+
+
+Then restart Salt:
+
+
+```bash
+sudo systemctl restart salt-master
+```
+
+
+__Salt Minions__
+
+
+Uncomment #master: salt near the top of `/etc/salt/minion`, and replace `salt` with your Salt master’s IP address:
+
+
+```bash
+# Set the location of the salt master server. If the master server cannot be
+# resolved, then the minion will fail to start.
+master: 192.168.2.110
+```
+
+
+### Authenticate Minions
+
+From the Salt master, list its key fingerprint, and all Minions linked to it with their key fingerprints:
+
+
+```bash
+sudo salt-key --finger-all
+
+Local Keys:
+master.pem:  f1:d3:52:eb:f4:52...
+master.pub:  64:12:61:93:3e:09...
+```
+
+
+Add the Salt Master’s master.pub fingerprint to `/etc/salt/minion`, between the single quotes:
+
+
+```bash
+# Fingerprint of the master public key to validate the identity of your Salt master
+# before the initial key exchange. The master fingerprint can be found by running
+# "salt-key -f master.pub" on the Salt master.
+master_finger: '64:12:61:93:3e:09...'
+```
+
+
+Then restart Salt:
+
+
+```bash
+sudo systemctl restart salt-minion
+```
+
+## Test Connection
+
+List the Minion’s fingerprint hash:
+
+
+```bash
+sudo salt-call key.finger --local
+
+local:
+    6a:1f:19:8e:78:0f:2d...
+```
+
+
+ and verify it with what’s reported by the Salt Master:
+
+
+ ```bash
+sudo salt-key --finger-all
+Local Keys:
+master.pem:  f1:d3:52:eb:f4:52...
+master.pub:  64:12:61:93:3e:09...
+Unaccepted Keys:
+centos8.localdomain:  6a:1f:19:8e:78:0f:2d...
+```
+
+
+Once each Minion ID has been verified, accept them all from the Salt Master:
+
+
+```bash
+sudo salt-key -a centos8.localdomain  // or accept all: sudo salt-key -A
+
+The following keys are going to be accepted:
+Unaccepted Keys:
+centos8.localdomain
+Proceed? [n/Y] y
+Key for minion centos8.localdomain accepted.
+```
+
+
+Verify the status of accepted minions. The command below should return the hostname or IP address of each Minion which has been verified and is running:
+
+
+```bash
+sudo salt-run manage.up
+
+- centos8.localdomain
+```
+
+Ping all Minions:
+
+
+```bash
+sudo salt '*' test.ping
+
+centos8.localdomain:
+    True
+```
