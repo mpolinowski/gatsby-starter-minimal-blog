@@ -3,11 +3,10 @@ date: "2020-06-14"
 title: "Install Salt on Ubuntu Server 20.04"
 categories:
   - LINUX
-  - Docker
 
 ---
 
-![Battambang, Cambodiaa](./photo-kt443t6d_64hdh43hfh6dgjdfhg4_d.jpg)
+![Battambang, Cambodia](./photo-kt443t6d_64hdh43hfh6dgjdfhg4_d.jpg)
 
 
 <!-- TOC -->
@@ -18,6 +17,7 @@ categories:
     - [Network Addressing](#network-addressing)
     - [Authenticate Minions](#authenticate-minions)
 - [Test Connection](#test-connection)
+- [Grains](#grains)
 
 <!-- /TOC -->
 
@@ -62,10 +62,26 @@ sudo sh install_salt.sh -P
 
 __Salt Master__
 
-Uncomment the #interface: line near the top of the `/etc/salt/master` file and replace the address placeholder with the address of your Salt master’s IP. If all your nodes are located in the same data center, you can use the private IP address.
+You can find the master configuration file here `/etc/salt/master`. Here we now want to define the interface our server is wirking on. You can uncomment the `#interface:` line near the top of the `/etc/salt/master` file and replace the address placeholder with the address of your Salt master’s IP. If all your nodes are located in the same data center, you can use the private IP address.
 
 
 ```bash
+# The address of the interface to bind to:
+interface: 192.168.2.110
+```
+
+The "cleaner" way to handle this, is to leave the default config unchanged and add your own configuration files to `/etc/salt/master.d`. All `*.conf` files inside this directory will be used by Salt automatically - you can name them according to your needs.
+
+
+```bash
+sudo nano /etc/salt/master.d/local.conf
+```
+
+
+And add the lines that you need to configure Salt:
+
+
+```conf
 # The address of the interface to bind to:
 interface: 192.168.2.110
 ```
@@ -82,10 +98,15 @@ sudo systemctl restart salt-master
 __Salt Minions__
 
 
-Uncomment #master: salt near the top of `/etc/salt/minion`, and replace `salt` with your Salt master’s IP address:
+To assign a master to your minions you can again uncomment `#master: salt` near the top of `/etc/salt/minion`, and replace `salt` with your Salt master’s IP address. Or add your own config file to `/etc/salt/minion.d` to override the default settings:
 
 
 ```bash
+sudo nano /etc/salt/minion.d/local.conf
+```
+
+
+```conf
 # Set the location of the salt master server. If the master server cannot be
 # resolved, then the minion will fail to start.
 master: 192.168.2.110
@@ -109,11 +130,23 @@ master.pub:  64:12:61:93:3e:09...
 Add the Salt Master’s master.pub fingerprint to `/etc/salt/minion`, between the single quotes:
 
 
-```bash
+```conf
 # Fingerprint of the master public key to validate the identity of your Salt master
 # before the initial key exchange. The master fingerprint can be found by running
 # "salt-key -f master.pub" on the Salt master.
 master_finger: '64:12:61:93:3e:09...'
+```
+
+And while we are at it - let's give our minion a name:
+
+
+```conf
+# Explicitly declare the id for this minion to use, if left commented the id
+# will be the hostname as returned by the python call: socket.getfqdn()
+# Since salt uses detached ids it is possible to run multiple minions on the
+# same machine but with different ids, this can be useful for salt compute
+# clusters.
+id: ubuntuAsus
 ```
 
 
@@ -163,6 +196,8 @@ Proceed? [n/Y] y
 Key for minion centos8.localdomain accepted.
 ```
 
+> Unaccepted keys can be deleted with `salt-key -d 'minionname'`. To get rid of all Keys from currently disconnected Minions  run `salt-run manage.down removekeys=True` 
+
 
 Verify the status of accepted minions. The command below should return the hostname or IP address of each Minion which has been verified and is running:
 
@@ -170,7 +205,7 @@ Verify the status of accepted minions. The command below should return the hostn
 ```bash
 sudo salt-run manage.up
 
-- centos8.localdomain
+- ubuntuAsus
 ```
 
 Ping all Minions:
@@ -179,6 +214,137 @@ Ping all Minions:
 ```bash
 sudo salt '*' test.ping
 
-centos8.localdomain:
+ubuntuAsus:
+    True
+```
+
+By using `*` you target all accepted Minions on your Salt network. You can also target a specific Minion `sudo salt -L ubuntuAsus,ubuntuBrix test.ping`.
+
+
+Target selection options:
+
+
+|    |    |
+| -- | -- |
+| -H, --hosts | List all known hosts to currently visible or other specified rosters |
+| -E, --pcre |  Instead of using shell globs to evaluate the target servers, use pcre regular expressions. |
+| -L, --list | Instead of using shell globs to evaluate the target servers, take a comma or whitespace delimited list of servers. |
+| -G, --grain | Instead of using shell globs to evaluate the target use a grain value to identify targets, the syntax for the target is the grain key followed by a globexpression: "os:Arch*". |
+| -P, --grain-pcre | Instead of using shell globs to evaluate the target use a grain value to identify targets, the syntax for the target is the grain key followed by a pcre regular expression: "os:Arch.*". |
+| -N, --nodegroup | Instead of using shell globs to evaluate the target use one of the predefined nodegroups to identify a list of targets. |
+| -R, --range | Instead of using shell globs to evaluate the target use a range expression to identify targets. Range expressions look like %cluster. |
+| -C, --compound | The compound target option allows for multiple target types to be evaluated, allowing for greater granularity in target matching. The compound target is space delimited, targets other than globs are preceded with an identifier matching the specific targets argument type: salt 'G@os:RedHat and webser* or E@database.*'. |
+| -I, --pillar | Instead of using shell globs to evaluate the target use a pillar value to identify targets, the syntax for the target is the pillar key followed by a glob expression: "role:production*". |
+| -J, --pillar-pcre | Instead of using shell globs to evaluate the target use a pillar value to identify targets, the syntax for the target is the pillar key followed by a pcre regular expression: "role:prod.*". |
+| -S, --ipcidr | Match based on Subnet (CIDR notation) or IP address. |
+
+
+
+## Grains
+
+Salt comes with an interface to derive information about the underlying system. This is called the [Grains Interface](https://docs.saltstack.com/en/latest/topics/grains/index.html), because it presents salt with grains of information. Grains are collected for the operating system, domain name, IP address, kernel, OS type, memory, and many other system properties.
+
+
+You can list all available grains by running `sudo salt '*' grains.ls`. Or get all available grains for your connected Minions with `sudo salt '*' grains.items`:
+
+
+```yaml
+ubuntuAsus:
+    ----------
+    biosreleasedate:
+        07/31/2018
+    biosversion:
+        0407
+    cpu_model:
+        Intel(R) Core(TM) i3-8130U CPU @ 2.20GHz
+    cpuarch:
+        x86_64
+    kernelrelease:
+        5.4.0-42-generic
+    kernelversion:
+        #46-Ubuntu SMP Fri Jul 10 00:24:02 UTC 2020
+    locale_info:
+        ----------
+        defaultencoding:
+            UTF-8
+        defaultlanguage:
+            en_US
+        detectedencoding:
+            utf-8
+        timezone:
+            UTC
+    localhost:
+        ubuntubrix
+    lsb_distrib_codename:
+        focal
+    lsb_distrib_description:
+        Ubuntu 20.04.1 LTS
+    lsb_distrib_id:
+        Ubuntu
+    lsb_distrib_release:
+        20.04
+    machine_id:
+        b783c83a285f4d4bac05fda96aa96a90
+    manufacturer:
+        ASUSTeK COMPUTER INC.
+    master:
+        192.168.2.110
+    mdadm:
+    mem_total:
+        7834
+    nodename:
+        ubuntubrix
+    num_cpus:
+        4
+    num_gpus:
+        1
+    os:
+        Ubuntu
+    os_family:
+        Debian
+    osarch:
+        amd64
+    oscodename:
+        focal
+    osfinger:
+        Ubuntu-20.04
+    osfullname:
+        Ubuntu
+    osmajorrelease:
+        20
+    osrelease:
+        20.04
+    osrelease_info:
+        - 20
+        - 4
+    username:
+        root
+    virtual:
+        physical
+    zfs_feature_flags:
+        False
+    zfs_support:
+        False
+    zmqversion:
+        4.3.2
+```
+
+
+To target Minions by grains use the `-G` flag:
+
+
+```bash
+sudo salt -G os:Ubuntu test.ping
+ubuntuAsus:
+    True
+```
+
+
+We can also build this request as a compound command with the `-C` flag - ping all Minions that run Ubuntu and have an ID that starts with `ubuntu`:
+
+
+```bash
+sudo salt -C 'G@os:Ubuntu and ubuntu*' test.ping
+ubuntuAsus:
     True
 ```

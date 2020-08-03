@@ -1,0 +1,185 @@
+---
+date: "2020-06-16"
+title: "Salt State"
+categories:
+  - LINUX
+
+---
+
+![Guangzhou, China](./photo-kt443t6d_64hdh43hfh6dgjdfhg4_d.jpg)
+
+
+<!-- TOC -->
+
+- [Setting up your Minions](#setting-up-your-minions)
+    - [Installing Apache](#installing-apache)
+    - [Configuring Apache](#configuring-apache)
+
+<!-- /TOC -->
+
+
+## Setting up your Minions
+
+### Installing Apache
+
+We can set the state of an Minion inside a YAML file that contains instructions for Salt. Start by creating a folder `/srv/salt` and run `git init` to version your [minion state](https://docs.saltstack.com/en/master/ref/states/all/index.html). To make sure that our minion has [Apache installed](https://docs.saltstack.com/en/master/ref/states/all/salt.states.pkg.html#salt.states.pkg.installed) we will create an `apache.sls` file inside the directory __on your MASTER__:
+
+
+```yaml
+install_apache:
+  pkg.installed:
+   - name: apache2
+```
+
+You can now execute this set of instructions on your minion server by running:
+
+
+```bash
+sudo salt ubuntuAsus state.sls apache
+
+ubuntuAsus:
+----------
+          ID: install_apache
+    Function: pkg.installed
+        Name: apache2
+      Result: True
+     Comment: The following packages were installed/updated: apache2
+     Started: 15:15:20.619100
+    Duration: 28624.3 ms
+     Changes:   
+              ----------
+              apache2:
+                  ----------
+                  new:
+                      2.4.41-4ubuntu3
+                  old:
+              apache2-bin:
+                  ----------
+                  new:
+                      2.4.41-4ubuntu3
+                  old:
+              apache2-data:
+                  ----------
+                  new:
+                      2.4.41-4ubuntu3
+                  old:
+              apache2-utils:
+                  ----------
+                  new:
+                      2.4.41-4ubuntu3
+                  old:
+              libapr1:
+                  ----------
+                  new:
+                      1.6.5-1ubuntu1
+                  old:
+              libaprutil1:
+                  ----------
+                  new:
+                      1.6.1-4ubuntu2
+                  old:
+              libaprutil1-dbd-sqlite3:
+                  ----------
+                  new:
+                      1.6.1-4ubuntu2
+                  old:
+              libaprutil1-ldap:
+                  ----------
+                  new:
+                      1.6.1-4ubuntu2
+                  old:
+              libjansson4:
+                  ----------
+                  new:
+                      2.12-1build1
+                  old:
+              liblua5.2-0:
+                  ----------
+                  new:
+                      5.2.4-1.1build3
+                  old:
+              ssl-cert:
+                  ----------
+                  new:
+                      1.0.39
+                  old:
+
+Summary for ubuntuAsus
+------------
+Succeeded: 1 (changed=1)
+Failed:    0
+------------
+Total states run:     1
+Total run time:  28.624 s
+```
+
+This step had our Minion download a copy of `apache.sls` file from our master and run it's instructions. The master does not need to know how the minion is going to download and install the required software - the OS on our minion makes that decision. Since we have Ubuntu installed on our minion it will run `apt-get update && apt-get install apache2`.
+
+
+### Configuring Apache
+
+We can now also make sure that Apache will be [enabled and activated as a service](https://docs.saltstack.com/en/master/ref/states/all/salt.states.service.html#module-salt.states.service) by adding the following line to our instruction file:
+
+
+```yaml
+install_apache:
+  pkg.installed:
+   - name: apache2
+
+enable_apache:
+  service.running:
+    - name: apache2
+    - enable: True
+```
+
+We can also configure Apache to display a landing page on Port 80:
+
+
+```yaml
+install_apache:
+  pkg.installed:
+   - name: apache2
+
+enable_apache:
+  service.running:
+    - name: apache2
+    - enable: True
+
+add_landing_page:
+  file.managed:
+    - name: /var/www/html/index.html
+    - contents: |
+        <!doctype html>
+        <body><h1>Salty Dayze, Sailor!</h1></body>
+```
+
+
+Now re-run `state.sls` and the default Apache Landing Page will be overwritten by our __Hello World__:
+
+
+```bash
+sudo salt ubuntuAsus state.sls apache test=true
+
+sudo salt ubuntuAsus state.sls apache
+```
+
+
+You can visit the website on your minions IP address and port 80. You can get the IP address by running the following command:
+
+
+```bash
+sudo salt ubuntuAsus network.ip_addrs
+
+ubuntuAsus:
+    - 10.1.88.0
+    - 172.17.0.1
+    - 192.168.2.111
+```
+
+
+```html
+curl 192.168.2.111
+
+<!doctype html>
+<body><h1>Salty Dayze, Sailor!</h1></body>
+```

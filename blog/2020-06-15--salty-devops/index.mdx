@@ -1,0 +1,411 @@
+---
+date: "2020-06-15"
+title: "Salty DevOps"
+categories:
+  - LINUX
+
+---
+
+![Shenzhen, China](./photo-kt443t6d_64hdh43hfh6dgjdfhg4_d.jpg)
+
+
+<!-- TOC -->
+
+- [Execution Modules](#execution-modules)
+    - [The TEST Module](#the-test-module)
+    - [The PKG Module](#the-pkg-module)
+    - [The USER Module](#the-user-module)
+    - [The SERVICE Module](#the-service-module)
+    - [The STATUS Module](#the-status-module)
+    - [The CMD Module](#the-cmd-module)
+    - [The GRAINS Module](#the-grains-module)
+- [Internal Execution Modules](#internal-execution-modules)
+    - [The CP Module](#the-cp-module)
+    - [The MATCH Module](#the-match-module)
+- [Minion Invocation](#minion-invocation)
+
+<!-- /TOC -->
+
+
+## Execution Modules
+
+The [Salt Module Index](https://docs.saltstack.com/en/latest/salt-modindex.html) lists [all available execution modules](https://docs.saltstack.com/en/latest/ref/modules/all/index.html).
+
+
+To check all loaded modules or functions on a Minion:
+
+
+```bash
+sudo salt ubuntuAsus sys.list_modules | less
+sudo salt ubuntuAsus sys.list_functions | less
+```
+
+
+
+
+### The TEST Module
+
+One module that we already used to see if our Minions were up was the [Test Module](https://docs.saltstack.com/en/latest/ref/modules/all/salt.modules.test.html#salt.modules.test.ping).
+
+
+Salt abstracts the OS layer for you. For example the __PKG__ command will automatically choose the correct way to install a software on your minions based on the operating system they are using.
+
+
+Another way to see the module documentation is using the `sys.doc` command:
+
+
+```bash
+sudo salt ubuntuAsus sys.doc test.ping
+
+test.ping:
+
+    Used to make sure the minion is up and responding. Not an ICMP ping.
+
+    Returns ``True``.
+
+    CLI Example:
+
+        salt '*' test.ping
+```
+
+
+If you need an overview over all available test functions:
+
+
+```bash
+sudo salt ubuntuAsus sys.doc test | less
+```
+
+
+Check installed version of Salt and dependencies: 
+
+
+```bash
+sudo salt ubuntuAsus test.version
+
+sudo salt ubuntuAsus test.versions_report
+```
+
+
+
+
+
+
+
+### The PKG Module
+
+```bash
+sudo salt ubuntuAsus sys.doc pkg.list_pkgs
+
+
+pkg.list_pkgs:
+
+    List the packages currently installed in a dict::
+
+        {'<package_name>': '<version>'}
+
+    removed
+        If ``True``, then only packages which have been removed (but not
+        purged) will be returned.
+
+    purge_desired
+        If ``True``, then only packages which have been marked to be purged,
+        but can't be purged due to their status as dependencies for other
+        installed packages, will be returned. Note that these packages will
+        appear in installed
+
+        Changed in version 2014.1.1
+
+            Packages in this state now correctly show up in the output of this
+            function.
+
+
+    CLI Example:
+
+        salt '*' pkg.list_pkgs
+        salt '*' pkg.list_pkgs versions_as_list=True
+```
+
+
+List all installed packages on a minion:
+
+
+```bash
+sudo salt ubuntuAsus pkg.list_pkgs | less
+
+sudo salt -L ubuntuAsus,ubuntuBrix pkg.list_pkgs | grep docker
+```
+
+
+Verify a dependency is installed on all minions and install it where still missing:
+
+
+```bash
+sudo salt '*' pkg.list_pkgs --out=txt | grep wget | cut -c -10
+
+sudo salt ubuntuAsus pkg.install wget
+```
+
+
+
+
+### The USER Module
+
+
+```bash
+sudo salt ubuntuAsus sys.doc user | less
+```
+
+
+List all users on a Minion:
+
+```bash
+sudo salt ubuntuAsus user.list_users
+```
+
+
+Get Info for a spefic user:
+
+```bash
+sudo salt ubuntuAsus user.info ubuntu
+
+ubuntuAsus:
+    ----------
+    fullname:
+        ubuntu
+    gid:
+        1000
+    groups:
+        - adm
+        - cdrom
+        - dip
+        - lxd
+        - plugdev
+        - sudo
+        - ubuntu
+    home:
+        /home/ubuntu
+    homephone:
+    name:
+        ubuntu
+    other:
+    passwd:
+        x
+    roomnumber:
+    shell:
+        /usr/bin/zsh
+    uid:
+        1000
+    workphone:
+```
+
+
+
+
+### The SERVICE Module
+
+
+```bash
+sudo salt ubuntuAsus sys.doc service | less
+```
+
+
+Get all running services on Minion:
+
+
+```bash
+sudo salt ubuntuAsus service.get_running
+```
+
+Restart a service:
+
+
+```bash
+sudo salt ubuntuAsus service.restart salt-minion  // takes a while to restart
+
+sudo salt ubuntuAsus service.status salt-minion
+```
+
+
+
+
+### The STATUS Module
+
+
+```bash
+sudo salt ubuntuAsus sys.doc status | less
+```
+
+Check logged in users and disk usage:
+
+
+```bash
+sudo salt ubuntuAsus status.w
+sudo salt ubuntuAsus status.diskusage
+```
+
+
+
+
+### The CMD Module
+
+
+```bash
+sudo salt ubuntuAsus sys.doc cmd | less
+```
+
+
+List content of directory and read files on Minions:
+
+
+```bash
+sudo salt ubuntuAsus cmd.run 'ls -lh /home/ubuntu'
+sudo salt ubuntuAsus cmd.run 'cat /etc/salt/minion.d/local.conf'
+```
+
+
+
+
+### The GRAINS Module
+
+
+```bash
+sudo salt ubuntuAsus sys.doc grains | less
+```
+
+
+Get or set value of a Grain
+
+
+```bash
+sudo salt ubuntuAsus grains.get os
+sudo salt ubuntuAsus grains.get systemd:version
+sudo salt ubuntuAsus grains.set 'apps:port' 8888
+sudo salt ubuntuAsus grains.get apps
+sudo salt ubuntuAsus grains.setval apps "{'port':'7777'}"
+sudo salt ubuntuAsus grains.get apps
+```
+
+
+## Internal Execution Modules
+
+
+
+
+### The CP Module
+
+Copying files between Master and Minion:
+
+
+```bash
+sudo salt ubuntuAsus sys.doc cp | less
+```
+
+
+
+
+### The MATCH Module
+
+Copying files between Master and Minion:
+
+
+```bash
+sudo salt ubuntuAsus sys.doc match | less
+```
+
+
+Return True if the minion matches the given `grain_pcre` target.
+
+
+```bash
+sudo salt ubuntuAsus match.grain_pcre 'os:Ubuntu.*'
+```
+
+
+
+## Minion Invocation
+
+The `salt-call` function can be used to trigger the Salt API from the Minion server:
+
+
+```bash
+sudo salt-call test.ping
+local:
+    True
+```
+
+
+This can be used to debug a Salt module directly on your Minion:
+
+
+```bash
+sudo salt-call network.netstat -l debug
+
+[DEBUG   ] Reading configuration from /etc/salt/minion
+[DEBUG   ] Including configuration from '/etc/salt/minion.d/_schedule.conf'
+[DEBUG   ] Reading configuration from /etc/salt/minion.d/_schedule.conf
+[DEBUG   ] Including configuration from '/etc/salt/minion.d/local.conf'
+[DEBUG   ] Reading configuration from /etc/salt/minion.d/local.conf
+[DEBUG   ] Configuration file path: /etc/salt/minion
+[WARNING ] Insecure logging configuration detected! Sensitive data may be logged.
+[DEBUG   ] Grains refresh requested. Refreshing grains.
+[DEBUG   ] Reading configuration from /etc/salt/minion
+[DEBUG   ] Including configuration from '/etc/salt/minion.d/_schedule.conf'
+[DEBUG   ] Reading configuration from /etc/salt/minion.d/_schedule.conf
+[DEBUG   ] Including configuration from '/etc/salt/minion.d/local.conf'
+[DEBUG   ] Reading configuration from /etc/salt/minion.d/local.conf
+[DEBUG   ] Elapsed time getting FQDNs: 0.017540931701660156 seconds
+[DEBUG   ] Loading static grains from /etc/salt/grains
+[DEBUG   ] LazyLoaded zfs.is_supported
+[DEBUG   ] Connecting to master. Attempt 1 of 1
+[DEBUG   ] Master URI: tcp://192.168.2.110:4506
+[DEBUG   ] Initializing new AsyncAuth for ('/etc/salt/pki/minion', 'ubuntuAsus', 'tcp://192.168.2.110:4506')
+[DEBUG   ] Generated random reconnect delay between '1000ms' and '11000ms' (10666)
+[DEBUG   ] Setting zmq_reconnect_ivl to '10666ms'
+[DEBUG   ] Setting zmq_reconnect_ivl_max to '11000ms'
+[DEBUG   ] Initializing new AsyncZeroMQReqChannel for ('/etc/salt/pki/minion', 'ubuntuAsus', 'tcp://192.168.2.110:4506', 'clear')
+[DEBUG   ] Connecting the Minion to the Master URI (for the return server): tcp://192.168.2.110:4506
+[DEBUG   ] Trying to connect to: tcp://192.168.2.110:4506
+[DEBUG   ] salt.crypt.get_rsa_pub_key: Loading public key
+[DEBUG   ] Decrypting the current master AES key
+[DEBUG   ] salt.crypt.get_rsa_key: Loading private key
+[DEBUG   ] salt.crypt._get_key_with_evict: Loading private key
+[DEBUG   ] Loaded minion key: /etc/salt/pki/minion/minion.pem
+[DEBUG   ] salt.crypt.get_rsa_pub_key: Loading public key
+[DEBUG   ] Closing AsyncZeroMQReqChannel instance
+[DEBUG   ] Connecting the Minion to the Master publish port, using the URI: tcp://192.168.2.110:4505
+[DEBUG   ] salt.crypt.get_rsa_key: Loading private key
+[DEBUG   ] Loaded minion key: /etc/salt/pki/minion/minion.pem
+[DEBUG   ] Determining pillar cache
+[DEBUG   ] Initializing new AsyncZeroMQReqChannel for ('/etc/salt/pki/minion', 'ubuntuAsus', 'tcp://192.168.2.110:4506', 'aes')
+[DEBUG   ] Initializing new AsyncAuth for ('/etc/salt/pki/minion', 'ubuntuAsus', 'tcp://192.168.2.110:4506')
+[DEBUG   ] Connecting the Minion to the Master URI (for the return server): tcp://192.168.2.110:4506
+[DEBUG   ] Trying to connect to: tcp://192.168.2.110:4506
+[DEBUG   ] salt.crypt.get_rsa_key: Loading private key
+[DEBUG   ] Loaded minion key: /etc/salt/pki/minion/minion.pem
+[DEBUG   ] Closing AsyncZeroMQReqChannel instance
+[DEBUG   ] LazyLoaded jinja.render
+[DEBUG   ] LazyLoaded yaml.render
+[DEBUG   ] LazyLoaded platform.is_windows
+[DEBUG   ] LazyLoaded network.netstat
+[DEBUG   ] LazyLoaded direct_call.execute
+[DEBUG   ] LazyLoaded path.which
+[DEBUG   ] LazyLoaded cmd.run
+[INFO    ] Executing command 'netstat -tulpnea' in directory '/root'
+[DEBUG   ] stdout: Active Internet connections (servers and established)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       User       Inode      PID/Program name    
+tcp        0      0 127.0.0.1:1338          0.0.0.0:*               LISTEN      0          39195      780/containerd      
+tcp        0      0 127.0.0.1:10248         0.0.0.0:*               LISTEN      0          41215      790/kubelet         
+tcp        0      0 0.0.0.0:25000           0.0.0.0:*               LISTEN      0          39187      1668/python3        
+tcp        0      0 127.0.0.1:10249         0.0.0.0:*               LISTEN      0          40430      791/kube-proxy      
+tcp        0      0 127.0.0.1:10251         0.0.0.0:*               LISTEN      0          39190      800/kube-scheduler  
+tcp        0      0 127.0.0.1:10252         0.0.0.0:*               LISTEN      0          37783      787/kube-controller 
+tcp        0      0 127.0.0.1:2380          0.0.0.0:*               LISTEN      0          37379      788/etcd            
+tcp        0      0 127.0.0.1:10256         0.0.0.0:*               LISTEN      0          40428      791/kube-proxy  
+[DEBUG   ] Initializing new AsyncZeroMQReqChannel for ('/etc/salt/pki/minion', 'ubuntuAsus', 'tcp://192.168.2.110:4506', 'aes')
+[DEBUG   ] Initializing new AsyncAuth for ('/etc/salt/pki/minion', 'ubuntuAsus', 'tcp://192.168.2.110:4506')
+[DEBUG   ] Connecting the Minion to the Master URI (for the return server): tcp://192.168.2.110:4506
+[DEBUG   ] Trying to connect to: tcp://192.168.2.110:4506
+[DEBUG   ] Closing AsyncZeroMQReqChannel instance
+[DEBUG   ] LazyLoaded nested.output
+```
