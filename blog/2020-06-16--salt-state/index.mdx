@@ -14,6 +14,13 @@ categories:
 - [Setting up your Minions](#setting-up-your-minions)
     - [Installing Apache](#installing-apache)
     - [Configuring Apache](#configuring-apache)
+- [Jinja Scripts](#jinja-scripts)
+    - [Conditionals](#conditionals)
+    - [Looping](#looping)
+    - [Scripts CleanUP](#scripts-cleanup)
+    - [Working with Dictionaries](#working-with-dictionaries)
+    - [Splitting up our Files](#splitting-up-our-files)
+- [Using Custom Python Scripts](#using-custom-python-scripts)
 
 <!-- /TOC -->
 
@@ -59,50 +66,6 @@ ubuntuAsus:
                       2.4.41-4ubuntu3
                   old:
               apache2-data:
-                  ----------
-                  new:
-                      2.4.41-4ubuntu3
-                  old:
-              apache2-utils:
-                  ----------
-                  new:
-                      2.4.41-4ubuntu3
-                  old:
-              libapr1:
-                  ----------
-                  new:
-                      1.6.5-1ubuntu1
-                  old:
-              libaprutil1:
-                  ----------
-                  new:
-                      1.6.1-4ubuntu2
-                  old:
-              libaprutil1-dbd-sqlite3:
-                  ----------
-                  new:
-                      1.6.1-4ubuntu2
-                  old:
-              libaprutil1-ldap:
-                  ----------
-                  new:
-                      1.6.1-4ubuntu2
-                  old:
-              libjansson4:
-                  ----------
-                  new:
-                      2.12-1build1
-                  old:
-              liblua5.2-0:
-                  ----------
-                  new:
-                      5.2.4-1.1build3
-                  old:
-              ssl-cert:
-                  ----------
-                  new:
-                      1.0.39
-                  old:
 
 Summary for ubuntuAsus
 ------------
@@ -182,4 +145,376 @@ curl 192.168.2.111
 
 <!doctype html>
 <body><h1>Salty Dayze, Sailor!</h1></body>
+```
+
+
+## Jinja Scripts
+
+### Conditionals
+
+The Apache install script in this form will only work for Debian-based operating system - the Apache package is called `apache2` on Ubuntu but `httpd` on CentOS. We can use the Jinja script syntax to make our script more robust:
+
+
+```yaml
+install_apache:
+  pkg.installed:
+   {% if salt.grains.get('os_family') == 'Debian' %}
+   - name: apache2
+   {% elif salt.grains.get('os_family') == 'RedHat' %}
+   - name: httpd
+   {% endif %}
+
+enable_apache:
+  service.running:
+    {% if salt.grains.get('os_family') == 'Debian' %}
+    - name: apache2
+    {% elif salt.grains.get('os_family') == 'RedHat' %}
+    - name: httpd
+    {% endif %}
+    - enable: True
+
+add_landing_page:
+  file.managed:
+    - name: /var/www/html/index.html
+    - contents: |
+        <!doctype html>
+        <body><h1>Salty Dayze, Sailor!</h1></body>
+```
+
+We can test this script with the `state.show_sls` command:
+
+
+```bash
+sudo salt '*' state.show_sls apache | less
+
+ubuntuAsus:
+    ----------
+    enable_apache:
+        ----------
+        __env__:
+            base
+        __sls__:
+            apache
+        service:
+            |_
+              ----------
+              name:
+                  apache2
+            |_
+              ----------
+              enable:
+                  True
+            - running
+            |_
+              ----------
+              order:
+                  10001
+```
+
+We can see that our Ubuntu Minion correctly resolved the `apache2` package and not `httpd`.
+
+
+
+
+### Looping
+
+To configure Apache we can now create configuration files in the `conf-available` directory and copy them over into the `conf-enabled` directory to start using them:
+
+
+```yaml
+mod_status:
+  file.managed:
+    - name: /etc/apache2/conf-available/mod_status.conf
+    - contents: |
+      <Location "/status">
+        SetHandler server-status
+      </Location>
+  cmd.run:
+    - name: a2enmod status && a2enconf mod_status
+    - creates: /etc/apache2/conf-enabled/mod_status.conf
+
+mod_info:
+  file.managed:
+    - name: /etc/apache2/conf-available/mod_info.conf
+    - contents: |
+      <Location "/info">
+        SetHandler server-info
+      </Location>
+  cmd.run:
+    - name: a2enmod info && a2enconf mod_info
+    - creates: /etc/apache2/conf-enabled/mod_info.conf
+```
+
+This configuration script can be compacted by writing a for-loop:
+
+
+```yaml
+{% for conf in ['status', 'info'] %}
+
+mod_{{ conf }}:
+  file.managed:
+    - name: /etc/apache2/conf-available/mod_{{ conf }}.conf
+    - contents: |
+        <Location "/{{ conf }}">
+            SetHandler server-{{ conf }}
+        </Location>
+
+  {% if salt.grains.get('os_family') == 'Debian' %}
+  cmd.run:
+    - name: a2enmod {{ conf }} && a2enconf mod_{{ conf }}
+    - creates: /etc/apache2/conf-enabled/mod_{{ conf }}.conf
+  {% endif %}
+
+{% endfor %}
+```
+
+The command step is only necessary on Debian systems and can be wrapped into a conditional. We can again test our script:
+
+
+```bash
+sudo salt '*' state.show_sls mods | less
+
+ubuntuAsus:
+    ----------
+    mod_info:
+        ----------
+        __env__:
+            base
+        __sls__:
+            mods
+    ...
+```
+
+
+### Scripts CleanUP
+
+Commenting your scripts and separating logic from state:
+
+
+__apache.sls__
+
+```yaml
+# Install vanilla Apache on Debian/RedHat
+
+{% if salt.grains.get('os_family') == 'Debian' %}
+{% set apache_pkg = 'apache2' %}
+{% elif salt.grains.get('os_family') == 'RedHat' %}
+{% set apache_pkg = 'httpd' %}
+{% endif %}
+
+install_apache:
+  pkg.installed:
+   - name: {{ apache_pkg }}
+
+enable_apache:
+  service.running:
+    - name: {{ apache_pkg }}
+
+    # Will be enabled automatically on Debian but has to be enabled manually on RedHat
+    - enable: True
+
+# Adding a blank front page
+add_landing_page:
+  file.managed:
+    - name: /var/www/html/index.html
+    - contents: |
+        <!doctype html>
+        <body><h1>Salty Dayze, Sailor!</h1></body>
+```
+
+
+### Working with Dictionaries
+
+Create a lookup dictionary to assign the correct package and service name for each minion:
+
+__apache.sls__
+
+```yaml
+# Install vanilla Apache on Debian/RedHat
+
+{% set lookup = {
+    'Debian': {
+        'pkg': 'apache2',
+        'srv': 'apache2'
+    },
+    'RedHat': {
+        'pkg': 'httpd',
+        'srv': 'httpd'
+    }
+} %}
+
+{% set apache = lookup[salt.grains.get('os_family')] %}
+
+install_apache:
+  pkg.installed:
+   - name: {{ apache.pkg }}
+
+enable_apache:
+  service.running:
+    - name: {{ apache.srv }}
+
+    # Will be enabled automatically on Debian but has to be enabled manually on RedHat
+    - enable: True
+
+# Adding a blank front page
+add_landing_page:
+  file.managed:
+    - name: /var/www/html/index.html
+    - contents: |
+        <!doctype html>
+        <body><h1>Salty Dayze, Sailor!</h1></body>
+```
+
+
+
+making this is a little bit more compact by using `grains.filter_by`:
+
+
+```bash
+sudo salt '*' grains.filter_by '{Debian: apache2, RedHat: httpd}'
+
+ubuntuAsus:
+    apache2
+```
+
+__apache.sls__
+
+```yaml
+# Install vanilla Apache on Debian/RedHat
+
+{% set apache = salt.grains.filter_by({
+    'Debian': {
+        'pkg': 'apache2',
+        'srv': 'apache2'
+    },
+    'RedHat': {
+        'pkg': 'httpd',
+        'srv': 'httpd'
+    }
+}) %}
+
+install_apache:
+  pkg.installed:
+   - name: {{ apache.pkg }}
+
+enable_apache:
+  service.running:
+    - name: {{ apache.srv }}
+
+    # Will be enabled automatically on Debian but has to be enabled manually on RedHat
+    - enable: True
+
+# Adding a blank front page
+add_landing_page:
+  file.managed:
+    - name: /var/www/html/index.html
+    - contents: |
+        <!doctype html>
+        <body><h1>Salty Dayze, Sailor!</h1></body>
+```
+
+
+Again, you can test your script with `sudo salt '*' state.show_sls apache | less`.
+
+
+
+### Splitting up our Files
+
+We can now break up our configuration file so that every SLS file only does one thing - if possible. We will collect the resulting files inside a subdirectory `/srv/salt/apache`:
+
+
+__welcome.sls__
+
+```yaml
+# Adding a blank front page
+add_landing_page:
+  file.managed:
+    - name: /var/www/html/index.html
+    - contents: |
+        <!doctype html>
+        <body><h1>Salty Dayze, Sailor!</h1></body>
+```
+
+
+__map.sls__
+
+```yaml
+# Get package/service name per OS version
+{% set apache = salt.grains.filter_by({
+    'Debian': {
+        'pkg': 'apache2',
+        'srv': 'apache2'
+    },
+    'RedHat': {
+        'pkg': 'httpd',
+        'srv': 'httpd'
+    }
+}) %}
+```
+
+
+__init.sls__
+
+```yaml
+# Install vanilla Apache on Debian/RedHat
+
+{% from "apache/map.sls" import apache with context %}
+
+install_apache:
+  pkg.installed:
+   - name: {{ apache.pkg }}
+
+enable_apache:
+  service.running:
+    - name: {{ apache.srv }}
+
+    # Will be enabled automatically on Debian but has to be enabled manually on RedHat
+    - enable: True
+```
+
+
+
+__mods.sls__
+
+```yaml
+{% for conf in ['status', 'info'] %}
+
+mod_{{ conf }}:
+  file.managed:
+    - name: /etc/apache2/conf-available/mod_{{ conf }}.conf
+    - contents: |
+        <Location "/{{ conf }}">
+            SetHandler server-{{ conf }}
+        </Location>
+
+  {% if salt.grains.get('os_family') == 'Debian' %}
+  cmd.run:
+    - name: a2enmod {{ conf }} && a2enconf mod_{{ conf }}
+    - creates: /etc/apache2/conf-enabled/mod_{{ conf }}.conf
+  {% endif %}
+
+{% endfor %}
+```
+
+
+Again, you can test your script with `sudo salt '*' state.show_sls apache | less`
+
+
+## Using Custom Python Scripts
+
+You can write your own Python modules and execute them with Salt. Start by creating a folder `/srv/salt/_modules` and add your Python scripts - `myUtils.py`:
+
+
+```python
+def getDate():
+    return __salt__['cmd.run']('date')
+```
+
+
+```bash
+sudo salt '*' saltutil.sync_modules  //sync script with all minions
+sudo salt '*' myUtils.getDate
+
+ubuntuAsus:
+    Tue Aug  4 09:19:49 UTC 2020
 ```

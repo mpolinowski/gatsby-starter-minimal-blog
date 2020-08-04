@@ -284,6 +284,8 @@ sudo salt ubuntuAsus grains.set 'apps:port' 8888
 sudo salt ubuntuAsus grains.get apps
 sudo salt ubuntuAsus grains.setval apps "{'port':'7777'}"
 sudo salt ubuntuAsus grains.get apps
+
+salt '*' grains.filter_by '{Debian: Debheads rule, RedHat: I love my hat}'
 ```
 
 
